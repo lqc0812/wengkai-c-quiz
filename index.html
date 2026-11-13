@@ -156,7 +156,7 @@ body{
 
 <header class="topbar">
   <div class="title">C 语言刷题</div>
-  <div class="subtitle">翁恺《程序设计入门——C语言》 · 4 阶段 / 14 小节 · 112 题（84 道写代码）</div>
+  <div class="subtitle">翁恺《程序设计入门——C语言》 · 4 阶段 / 14 小节 · 112 题（84 写代码 + 28 判断）</div>
 </header>
 
 <main class="wrap">
@@ -178,7 +178,7 @@ body{
     <div class="card">
       <h2>3 · 选择模式</h2>
       <div id="mode-list" class="grid grid-3"></div>
-      <p class="hint">题库以写代码为主：84 道编程题 + 28 道选择题，随机刷题会混合出题。建议先选一个具体周小节（6 道写代码 + 2 道选择题）练完再换。一轮会走完所选范围，随时可返回首页。</p>
+      <p class="hint">题库以写代码为主：84 道编程题 + 28 道结构判断题（switch-case、do-while、break/continue 等常见结构），随机刷题会混合出题。建议先选一个具体周小节（6 道写代码 + 2 道判断题）练完再换。一轮会走完所选范围，随时可返回首页。</p>
     </div>
 
     <button id="btn-start" class="btn btn-primary btn-large" type="button">开始刷题</button>
@@ -222,7 +222,7 @@ body{
         </div>
         <div id="q-text" class="q-text"></div>
 
-        <!-- 选择题区域 -->
+        <!-- 判断题区域：A 正确 / B 错误 -->
         <div id="q-options" class="options"></div>
 
         <!-- 编程题区域：手写代码编辑器 -->
@@ -267,12 +267,12 @@ body{
  *   stage       : 1~4，对应翁恺课程四个阶段
  *   unit        : "1.1" ~ "4.4"，14 个周小节之一（见后面的 UNITS 常量）
  *   topic       : 知识点标签，随便写
- *   type        : "单选" / "代码输出" / "编程题"
+ *   type        : "判断题" / "编程题"（判断题只有 2 个选项）
  *   question    : 题干；用反引号模板字符串可直接换行写代码
- *   题库构成：84 道编程题 + 28 道选择题，写代码是主体
- *   ---- 选择题（单选 / 代码输出）----
- *   options     : 恰好 4 个字符串，对应 A/B/C/D
- *   answer      : 正确选项字母 "A"/"B"/"C"/"D"
+ *   题库构成：84 道编程题 + 28 道结构判断题，写代码是主体
+ *   ---- 判断题（判断某个说法或一小段代码的结构规则是否成立）----
+ *   options     : 固定 2 个字符串 ["正确", "错误"]，对应 A/B
+ *   answer      : "A"（说法正确）或 "B"（说法错误）
  *   ---- 编程题（type = "编程题"）----
  *   starter     : 起手代码，进入题目时预填进编辑器
  *   reference   : 参考实现，提交后展示给用户对照
@@ -282,247 +282,239 @@ body{
  * ========================================================================= */
 const QUESTION_BANK = [
 
-/* ---------------- 选择题（每小节 2 题，共 28 题）----------------
- * 只保留覆盖核心考点的概念题与代码输出题，刷题以写代码为主。
+/* ---------------- 结构判断题（每小节 2 题，共 28 题）----------------
+ * 题型 type = "判断题"，每题只有 2 个选项：A 正确 / B 错误。
+ * 命题聚焦 switch-case、do-while、for、if-else、break/continue 等
+ * 常见结构的执行规则与易错点，题干可给一小段代码再判断说法是否成立。
  * --------------------------------------------------------------------- */
+
+/* ---- 1.1 程序结构与输入输出 ---- */
 {
-  id: 1, stage: 1, unit: "1.1", topic: "程序结构", type: "单选",
-  question: `一个可以运行的 C 程序，必须包含且只能包含一个什么？`,
-  options: ["main 函数", "printf 函数", "自定义函数", "#include <stdio.h>"],
-  answer: "A",
-  explanation: "main 是程序入口且必须唯一；头文件和其它函数都可以没有。坑：写成 mian 或 Main 链接时会找不到入口。"
-},
-{
-  id: 20, stage: 1, unit: "1.1", topic: "输入输出格式", type: "单选",
-  question: `scanf("%d,%d", &a, &b); 要正确读入 3 和 5，键盘应输入？`,
-  options: ["3 5", "3,5", "3;5", "35"],
+  id: 201, stage: 1, unit: "1.1", topic: "程序结构｜main", type: "判断题",
+  question: `判断：一个 C 程序可以没有 main 函数，只要写了其它自定义函数就能编译运行。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "格式串里的普通字符（逗号）必须原样输入，换成空格或分号都会读入失败。坑：PTA 判题极看输出格式，逗号、空格、换行都不能多。"
+  explanation: "main 是程序入口，必须有且只能有一个；链接时找不到 main 会直接报错。坑：写成 mian、Main 或者把 main 放进某个自定义函数里都不行。"
 },
 {
-  id: 4, stage: 1, unit: "1.2", topic: "变量与表达式", type: "代码输出",
-  question: `int x = -7;
-printf("%d %d", x / 2, x % 2);
-（按 C99 / gcc）输出是什么？`,
-  options: ["-4 1", "-3 1", "-4 -1", "-3 -1"],
-  answer: "D",
-  explanation: "C99 起整数除法向 0 取整，-7/2 = -3；余数符号跟被除数，-7%2 = -1。坑：判断奇偶别只写 x%2==1，负数会漏。"
-},
-{
-  id: 6, stage: 1, unit: "1.2", topic: "变量与表达式", type: "代码输出",
-  question: `int a = 5;
-int b = a++;
-printf("%d %d", a, b);
-输出是什么？`,
-  options: ["6 6", "5 5", "5 6", "6 5"],
-  answer: "D",
-  explanation: "a++ 先把旧值 5 交给 b，再自增；++a 才是先加后用。坑：别在同一个表达式里多次改写同一个变量。"
-},
-{
-  id: 14, stage: 1, unit: "1.3", topic: "闰年判断", type: "单选",
-  question: `闰年条件「能被 4 整除且不能被 100 整除，或能被 400 整除」应写成？`,
-  options: [
-    "y % 4 == 0 || y % 400 == 0",
-    "(y % 4 == 0 && y % 100 != 0) || y % 400 == 0",
-    "(y % 4 == 0 || y % 100 != 0) && y % 400 == 0",
-    "y % 4 == 0 && y % 100 == 0 || y % 400 == 0"
-  ],
-  answer: "B",
-  explanation: "1900 能被 4 整除但被 100 整除，不是闰年；2000 能被 400 整除才是。坑：百年不闰、四百年再闰，别只判 y%4。"
-},
-{
-  id: 17, stage: 1, unit: "1.3", topic: "分支结构", type: "代码输出",
-  question: `int x = 0;
-if (x = 1) printf("Y"); else printf("N");
-输出是什么？`,
-  options: ["Y", "N", "编译错误", "无输出"],
+  id: 202, stage: 1, unit: "1.1", topic: "程序结构｜语句与分号", type: "判断题",
+  question: `判断：像 printf("hi"); 这样的语句，末尾的分号属于语句本身，不能省略。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "= 是赋值，表达式 x=1 的值为 1（真），所以输出 Y。坑：判断相等要用 ==，这种错误编译不报错，PTA 上表现为答案全错。"
+  explanation: "分号是 C 语句的结束符，表达式加分号才构成语句。坑：#include、#define 这类预处理指令行尾不加分号；在 if 或 for 后面多写一个分号会变成一个空语句，循环体/分支体就空了。"
 },
+
+/* ---- 1.2 变量与表达式 ---- */
 {
-  id: 21, stage: 2, unit: "2.1", topic: "循环", type: "代码输出",
-  question: `int s = 0;
-for (int i = 1; i <= 5; i++) s += i;
-printf("%d", s);
-输出是什么？`,
-  options: ["10", "15", "5", "16"],
-  answer: "B",
-  explanation: "循环包含 i=5，1+2+3+4+5=15。坑：边界写成 i<5 就只有 10，循环边界要代入首项和末项各验一次。"
-},
-{
-  id: 27, stage: 2, unit: "2.1", topic: "循环数列求和", type: "单选",
-  question: `求 1 - 1/2 + 1/3 - 1/4 + ... 的前 n 项和，变量 sum 应声明为？`,
-  options: ["int sum = 0;", "double sum = 0;", "char sum = 0;", "float sum = 0; 且用 1/i 即可"],
-  answer: "B",
-  explanation: "累加分数必须用浮点变量，且项要写成 1.0/i 或 (double)1/i；写 1/i 会因整数除法几乎全变 0。符号可用 sign=-sign 交替。"
-},
-{
-  id: 26, stage: 2, unit: "2.2", topic: "嵌套循环", type: "代码输出",
-  question: `int cnt = 0;
-for (int i = 1; i <= 3; i++)
-    for (int j = 1; j <= i; j++) cnt++;
-printf("%d", cnt);
-输出是什么？`,
-  options: ["6", "3", "9", "10"],
+  id: 203, stage: 1, unit: "1.2", topic: "表达式｜整数除法", type: "判断题",
+  question: `判断：int a = 7, b = 2; 时 a / b 的值是 3，而 7 / 2.0 的值是 3.5。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "内层次数是 1+2+3=6。打印三角形图案就用 j<=i 控制每行个数。坑：内层 j 每轮都要重新初始化，漏写花括号时第二层循环可能压根不在循环体里。"
+  explanation: "两个 int 相除结果仍是 int，小数部分被截断；只要有一个操作数是浮点，就先转换再按 double 计算。坑：想求平均值要写 / 3.0 或先乘 1.0，写 / 3 会丢掉小数。"
 },
 {
-  id: 29, stage: 2, unit: "2.2", topic: "循环｜素数", type: "单选",
-  question: `判断 n 是否为素数，最合理的循环条件是？`,
-  options: ["for (i = 2; i < n; i++)", "for (i = 2; i <= n/2; i++)", "for (i = 2; i * i <= n; i++)", "for (i = 1; i <= n; i++)"],
-  answer: "C",
-  explanation: "因子成对出现，只需试到 sqrt(n)；写 i*i<=n 可避开浮点误差。坑：i 从 1 开始会把所有数判成合数，且 n<=1 要先特判。"
+  id: 204, stage: 1, unit: "1.2", topic: "表达式｜自增", type: "判断题",
+  question: `判断：a++ 和 ++a 单独写成一条语句时效果相同，所以 b = a++; 与 b = ++a; 的结果也总是一样。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "前缀是先自增再取值，后缀是先取原值再自增，只有单独成语句时才等价。坑：int a=5; b=a++; 之后 b=5、a=6；b=++a; 之后 b=6、a=6。"
 },
+
+/* ---- 1.3 分支结构：switch-case 重点 ---- */
 {
-  id: 33, stage: 2, unit: "2.3", topic: "数据类型", type: "单选",
-  question: `在常见 32/64 位环境下，sizeof(int) 通常是？`,
-  options: ["4", "2", "8", "1"],
-  answer: "A",
-  explanation: "sizeof 以字节为单位：char 恒为 1，int 通常 4，double 8。坑：sizeof 是运算符不是函数；sizeof(指针) 是 4 或 8，与指向的数据无关。"
-},
-{
-  id: 34, stage: 2, unit: "2.3", topic: "数据类型", type: "代码输出",
-  question: `char c = 200;
-printf("%d", c);
-（假定 char 为 8 位有符号）输出是什么？`,
-  options: ["200", "56", "-56", "编译错误"],
-  answer: "C",
-  explanation: "有符号 char 范围 -128~127，200 溢出后按补码解释成 200-256=-56。坑：存 0~255 的字节值要用 unsigned char 或 int。"
-},
-{
-  id: 37, stage: 2, unit: "2.4", topic: "函数｜参数传递", type: "代码输出",
-  question: `void f(int x) { x = 100; }
-int main() {
-    int a = 5; f(a);
-    printf("%d", a);
-    return 0;
+  id: 205, stage: 1, unit: "1.3", topic: "switch-case｜穿透", type: "判断题",
+  question: `switch (x) {
+  case 1: printf("A");
+  case 2: printf("B"); break;
+  default: printf("C");
 }
-输出是什么？`,
-  options: ["100", "5", "0", "不确定"],
+判断：当 x 等于 1 时，程序只会输出 A。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "传值调用只把 5 复制给形参 x，改 x 不影响 a。坑：想改实参要传 &a 并用 int *x 接收，这是阶段三指针的重点。"
+  explanation: "case 1 末尾没有 break，会继续「穿透」执行 case 2 的语句，实际输出 AB，遇到 break 才跳出 switch，default 不会执行。坑：case 只是入口标签，不是分支边界；故意共用代码时也要注释说明。"
 },
 {
-  id: 38, stage: 2, unit: "2.4", topic: "函数｜返回值", type: "单选",
-  question: `返回值类型为 int 的函数，如果某条分支没有 return，会怎样？`,
-  options: ["编译报错", "自动返回 0", "调用方得到不确定的值", "自动返回 -1"],
-  answer: "C",
-  explanation: "C 不强制检查所有分支都有 return（编译器最多警告），调用方会拿到垃圾值。坑：PTA 上表现为「有时对有时错」，先查每个分支是否都有返回。"
-},
-{
-  id: 42, stage: 3, unit: "3.1", topic: "数组｜越界", type: "单选",
-  question: `int a[5]; 执行 a[5] = 10; 会导致？`,
-  options: ["编译报错", "自动扩展到 6 个元素", "越界写入，结果不可预期", "a[0] 被改成 10"],
-  answer: "C",
-  explanation: "合法下标只有 0~4，C 不检查下标，越界可能改坏相邻变量或直接崩溃，且不报编译错误。坑：数组长度是 5 却写 i<=5。"
-},
-{
-  id: 44, stage: 3, unit: "3.1", topic: "数组遍历｜最值", type: "单选",
-  question: `在 int a[n] 中找最大值，max 的初始值最合理的是？`,
-  options: ["max = a[0];", "max = 0;", "max = 999999;", "max = n;"],
+  id: 206, stage: 1, unit: "1.3", topic: "switch-case｜标签规则", type: "判断题",
+  question: `判断：switch 的 case 后面必须是整型常量表达式，不能写成 case x > 10: 这样的范围条件。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "用第一个元素作初值，全负数数组也正确，然后从 i=1 开始比较。坑：固定常量初值在特殊数据上一定翻车。"
+  explanation: "case 标签要能在编译期确定，且是整型（含字符）；case 1+2: 合法，case x: 非法（除非 x 是宏或枚举常量）。坑：要判断区间只能改用 if-else 链，或者把范围映射成整数再 switch。"
 },
+
+/* ---- 2.1 循环基础：do-while 重点 ---- */
 {
-  id: 49, stage: 3, unit: "3.2", topic: "指针｜传址调用", type: "单选",
-  question: `要在函数里交换 main 中两个 int 变量的值，函数原型应为？`,
-  options: ["void swap(int *a, int *b);", "void swap(int a, int b);", "void swap(int &a, int &b);", "int swap(int a, int b);"],
+  id: 207, stage: 2, unit: "2.1", topic: "do-while｜执行次数", type: "判断题",
+  question: `判断：即使循环条件一开始就是假，do { ... } while (cond); 的循环体也至少会执行一次。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "C 只有传值，需传地址并在函数内用 *a、*b 交换，调用写 swap(&x, &y)。坑：& 引用是 C++ 语法，C 不支持。"
+  explanation: "do-while 是先执行循环体、后判断条件；while 和 for 是先判断条件。坑：do-while 的 while(cond) 后面那个分号不能漏，而且条件为真才继续，别和 until 的语义搞反。"
 },
 {
-  id: 52, stage: 3, unit: "3.2", topic: "指针｜数组作参数", type: "单选",
-  question: `在 void f(int a[]) 内部，sizeof(a) 通常得到？`,
-  options: ["整个数组字节数", "10", "指针大小（4 或 8）", "编译错误"],
-  answer: "C",
-  explanation: "数组作函数参数会退化成指针，sizeof 得到的是指针大小。坑：数组长度必须另用一个参数传进去，别在函数里求长度。"
+  id: 208, stage: 2, unit: "2.1", topic: "for｜表达式省略", type: "判断题",
+  question: `判断：for (;;) 因为三个表达式都省略了，编译器会报错。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "for 的三个表达式都可以省略，for(;;) 等价于条件恒为真的无限循环，通常靠循环体里的 break 退出。坑：for (...); 末尾那个分号会变成空循环体，写错时循环看起来「没执行」。"
 },
+
+/* ---- 2.2 循环控制与嵌套 ---- */
 {
-  id: 53, stage: 3, unit: "3.3", topic: "字符串长度", type: "单选",
-  question: `char s[] = "abc"; 数组 s 的长度是？`,
-  options: ["4", "3", "5", "不确定"],
+  id: 209, stage: 2, unit: "2.2", topic: "continue｜while 与 for 差异", type: "判断题",
+  question: `判断：在 while 循环里执行 continue 会跳过本次剩余语句、直接回到条件判断；如果变量更新语句被跳过，可能形成死循环。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "字符串末尾自动补结束符 '\\0'，共 4 字节；strlen(s)=3，sizeof(s)=4。坑：定义字符数组时要给结束符多留一个位置。"
+  explanation: "while 里的 continue 直接跳到条件判断；for 里的 continue 会先执行 i++ 那个表达式再判断条件，这是两者最关键的差别。坑：while (i < 10) { if (...) continue; i++; } 一旦命中 continue，i 永远不变。"
 },
 {
-  id: 55, stage: 3, unit: "3.3", topic: "字符串", type: "单选",
-  question: `比较两个字符串内容是否相等，正确写法是？`,
-  options: ["if (s1 == s2)", "if (strcmp(s1, s2) == 0)", "if (s1 = s2)", "if (strlen(s1) == strlen(s2))"],
+  id: 210, stage: 2, unit: "2.2", topic: "break｜嵌套循环", type: "判断题",
+  question: `判断：只要把 break 写在内层循环里，就能一次跳出任意多层嵌套循环。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "== 比的是地址不是内容，长度相等也不代表内容相同。坑：strcmp 返回 0 才表示相等，返回负数/正数表示大小关系。"
+  explanation: "break 只跳出最近的一层循环（或 switch）。要跳出多层得用标志变量、goto，或把嵌套逻辑封装成函数用 return。坑：素数判定里内层 break 之后，外层循环还会继续跑下一轮。"
 },
+
+/* ---- 2.3 数据类型 ---- */
 {
-  id: 61, stage: 4, unit: "4.1", topic: "结构体定义", type: "单选",
-  question: `定义一个含 int 学号、char 姓名数组的结构体，正确的是？`,
-  options: [
-    "struct Student { int id; char name[20]; };",
-    "struct Student { int id; char name[20]; }",
-    "struct { int id; char name[20]; } = Student;",
-    "typedef int Student;"
-  ],
+  id: 211, stage: 2, unit: "2.3", topic: "数据类型｜char 溢出", type: "判断题",
+  question: `判断：在 char 为 8 位有符号的机器上，char c = 200; printf("%d", c); 通常输出 -56。`,
+  options: ["正确", "错误"],
   answer: "A",
-  explanation: "结构体定义右花括号后必须有分号。坑：少这个分号是结构体题里最高频的编译错误。"
+  explanation: "200 超出 -128~127，按补码重新解释就是 200-256=-56。坑：想存 0~255 的字节值要用 unsigned char 或 int；char 是否有符号是实现相关的，不能想当然。"
 },
 {
-  id: 63, stage: 4, unit: "4.1", topic: "结构体｜成员访问", type: "单选",
-  question: `struct Student *p = &s; 要访问成员 id，正确写法是？`,
-  options: ["p.id", "p->id", "*p.id", "&p->id"],
+  id: 212, stage: 2, unit: "2.3", topic: "数据类型｜强制转换", type: "判断题",
+  question: `判断：(int)3.9 的结果是 4，因为强制类型转换会自动四舍五入。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "指针用 ->，结构体变量用 .；(*p).id 也对但括号不能省，因为 . 优先级高于 *。坑：p->id 等价于 (*p).id。"
+  explanation: "(int) 是直接截断小数部分，结果是 3；四舍五入要写 (int)(x + 0.5)。坑：负数时截断是向零取整，(int)(-3.9) 得 -3，并不是向下取整。"
+},
+
+/* ---- 2.4 函数 ---- */
+{
+  id: 213, stage: 2, unit: "2.4", topic: "函数｜参数传递", type: "判断题",
+  question: `判断：void f(int x) { x = 100; } 里修改形参 x，不会改变调用方传进来的那个实参变量。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "C 的参数按值传递，形参是实参的一份副本；要改调用方的变量必须传地址（int *p）并对 *p 赋值。坑：数组作参数时传的是首元素地址，属于例外，函数里改 a[i] 会影响原数组。"
 },
 {
-  id: 68, stage: 4, unit: "4.2", topic: "程序结构｜static", type: "代码输出",
-  question: `void f() {
-    static int c = 0;
-    c++;
-    printf("%d ", c);
-}
-int main() { f(); f(); return 0; }
-输出是什么？`,
-  options: ["1 1", "0 1", "2 2", "1 2"],
-  answer: "D",
-  explanation: "static 局部变量只初始化一次、函数结束后值仍保留；普通局部变量每次调用都重新初始化。坑：它仍是局部变量，别处不能直接访问。"
-},
-{
-  id: 70, stage: 4, unit: "4.2", topic: "程序结构｜宏定义", type: "单选",
-  question: `#define SQR(x) x*x 时，SQR(2+3) 展开后的值是？`,
-  options: ["25", "11", "10", "编译错误"],
+  id: 214, stage: 2, unit: "2.4", topic: "函数｜递归", type: "判断题",
+  question: `判断：递归函数可以没有终止条件，编译器会在栈溢出之前自动停止递归。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "宏只做文本替换：2+3*2+3 = 11。坑：安全写法是 #define SQR(x) ((x)*(x))，参数和整体都要加括号。"
+  explanation: "递归必须有基线条件，例如 if (n <= 1) return 1;，否则会无限调用直至栈溢出崩溃。坑：除了写终止条件，递归参数还要向它收敛，比如每次传 n-1。"
+},
+
+/* ---- 3.1 数组 ---- */
+{
+  id: 215, stage: 3, unit: "3.1", topic: "数组｜初始化", type: "判断题",
+  question: `判断：int a[5] = {1, 2, 3}; 中，没有显式给出初值的 a[3] 和 a[4] 会被自动置为 0。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "只要写了初始化列表，剩余元素就自动补 0（指针补 NULL）。坑：如果完全不初始化，局部数组里是随机值，别把两种情况记混。"
 },
 {
-  id: 73, stage: 4, unit: "4.3", topic: "链表｜动态内存", type: "单选",
-  question: `为 struct Node 节点申请内存并让 p 指向它，正确的是？`,
-  options: ["p = malloc(sizeof(p));", "p = alloc(struct Node);", "p = malloc(sizeof(struct Node));", "p = sizeof(struct Node);"],
-  answer: "C",
-  explanation: "sizeof(p) 只是指针大小（4/8 字节），申请太少会越界写坏堆。坑：malloc 后要判 NULL，用完 free，之后别再访问已释放节点。"
-},
-{
-  id: 74, stage: 4, unit: "4.3", topic: "链表｜插入删除", type: "单选",
-  question: `在单链表中删除 p 之后的节点 q，正确顺序是？`,
-  options: ["free(p); p = q;", "p->next = q->next; free(q);", "q->next = p->next; free(p);", "p->next = q; free(q);"],
+  id: 216, stage: 3, unit: "3.1", topic: "数组｜越界", type: "判断题",
+  question: `判断：int a[5]; a[5] = 10; 会被编译器检查出来并报错，因此不用担心。`,
+  options: ["正确", "错误"],
   answer: "B",
-  explanation: "先让前驱绕过被删节点，再 free(q)。坑：先 free 就丢了 q->next，会造成断链或野指针；头节点删除还要单独处理。"
+  explanation: "合法下标是 0~4，a[5] 已经越界。C 不做运行期边界检查，通常能编译通过，但会踩到相邻内存，属于未定义行为。坑：越界经常表现为「某个不相干变量莫名被改」，极难排查。"
+},
+
+/* ---- 3.2 指针 ---- */
+{
+  id: 217, stage: 3, unit: "3.2", topic: "指针｜数组退化", type: "判断题",
+  question: `判断：在函数 void f(int a[]) 内部，sizeof(a) 得到的是整个数组占用的字节数。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "数组作参数会退化成指向首元素的指针，sizeof(a) 得到的是指针大小（64 位下通常是 8）。坑：需要数组长度就要额外传一个 n 参数，别在函数里用 sizeof 算。"
 },
 {
-  id: 76, stage: 4, unit: "4.4", topic: "文件｜打开模式", type: "单选",
-  question: `打开一个已存在的文本文件、只读取数据，应该用？`,
-  options: ['fopen("a.txt", "w")', 'fopen("a.txt", "a")', 'fopen("a.txt", "r")', 'fopen("a.txt", "wb")'],
-  answer: "C",
-  explanation: "\"w\" 会清空原文件，\"a\" 是追加写，\"wb\" 是二进制写。坑：\"r\" 要求文件已存在，否则 fopen 返回 NULL。"
+  id: 218, stage: 3, unit: "3.2", topic: "指针｜解引用", type: "判断题",
+  question: `判断：int a = 5; int *p = &a; *p = 8; 执行之后 a 的值变成 8。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "p 保存的是 a 的地址，*p 就是那个位置本身，给它赋值等于直接改 a。坑：int *p; *p = 8; 里的 p 没有初始化，是野指针，写进去可能立刻崩溃。"
+},
+
+/* ---- 3.3 字符串 ---- */
+{
+  id: 219, stage: 3, unit: "3.3", topic: "字符串｜结束符", type: "判断题",
+  question: `判断：char s[] = "abc"; 中，strlen(s) 的值是 3，sizeof(s) 的值是 4。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "编译器会在字符串末尾自动补一个 '\\0'，strlen 统计到结束符为止不算它，sizeof 统计整个数组。坑：自己声明 char s[3] = \"abc\"; 就没地方放结束符，用 %s 输出会读到越界。"
 },
 {
-  id: 80, stage: 4, unit: "4.4", topic: "文件｜EOF", type: "单选",
-  question: `用 fgetc 读到文件末尾，判断结束的正确写法是？`,
-  options: [
-    "while (!feof(fp)) { c = fgetc(fp); ... }",
-    "while (fgetc(fp)) { ... }",
-    "while ((c = fgetc(fp)) != EOF) { ... }",
-    "while (c != EOF) { ... }（不更新 c）"
-  ],
-  answer: "C",
-  explanation: "feof 只有在读过失败之后才变真，先判断 feof 会多处理一次 EOF。坑：接收 fgetc 的变量必须是 int，char 装不下 EOF(-1)。"
+  id: 220, stage: 3, unit: "3.3", topic: "字符串｜常量只读", type: "判断题",
+  question: `判断：char *p = "abc"; p[0] = 'x'; 是合法写法，因为 p 指向一个可修改的字符数组。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "字符串常量通常放在只读段，修改它属于未定义行为，运行时可能直接崩溃；要可写就写 char s[] = \"abc\";。坑：编译器往往不报错，问题只在运行时暴露。"
+},
+
+/* ---- 4.1 结构类型 ---- */
+{
+  id: 221, stage: 4, unit: "4.1", topic: "结构体｜定义语法", type: "判断题",
+  question: `判断：定义结构体时右花括号后面的分号可以省略，写成 struct P { int x, y } 就行。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "结构体定义是一条声明，}; 里的分号不能省，否则编译器会报错或把后面的变量声明解析错。坑：typedef struct { ... } Point; 同样必须有分号；定义的同时写变量也要注意位置。"
+},
+{
+  id: 222, stage: 4, unit: "4.1", topic: "结构体｜成员访问", type: "判断题",
+  question: `判断：已有 struct Student s, *p = &s;，p->id 等价于 (*p).id。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "-> 是「指针解引用后取成员」的简写；括号不能省，因为 *p.id 会被解析成 *(p.id)。坑：对结构体变量本身要用点号 s.id，对指针才用箭头 p->id。"
+},
+
+/* ---- 4.2 程序结构 ---- */
+{
+  id: 223, stage: 4, unit: "4.2", topic: "宏定义｜参数展开", type: "判断题",
+  question: `判断：#define SQR(x) x*x 时，SQR(2+3) 的计算结果是 25。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "宏是纯文本替换，展开成 2+3*2+3，按优先级先算乘法得 11。坑：正确写法是 #define SQR(x) ((x)*(x))，参数和整体都要加括号，宏定义末尾也不要写分号。"
+},
+{
+  id: 224, stage: 4, unit: "4.2", topic: "static｜局部变量", type: "判断题",
+  question: `判断：函数里的 static int c = 0; 只在第一次调用时初始化，之后每次调用都保留上一次的值。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "static 局部变量存放在静态存储区，生命周期贯穿整个程序，初始化只做一次，但作用域仍限于函数内部。坑：普通局部自动变量每次调用都会重新创建，两者别混用。"
+},
+
+/* ---- 4.3 链表 ---- */
+{
+  id: 225, stage: 4, unit: "4.3", topic: "链表｜自引用结构", type: "判断题",
+  question: `判断：单链表节点里可以写 struct Node *next; 指向同类型节点，即使 struct Node 还没定义完。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "结构体可以包含指向自身类型的指针，因为指针大小是固定的，编译器不需要知道结构体完整大小。坑：写成成员 struct Node next; 是非法的，那会造成无限递归定义。"
+},
+{
+  id: 226, stage: 4, unit: "4.3", topic: "链表｜内存释放", type: "判断题",
+  question: `判断：free(p) 之后 p 会被自动置为 NULL，所以再 free(p) 一次也是安全的。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "free 只归还内存，不会改动指针变量的值，重复释放同一块内存是未定义行为。坑：free(p) 之后应手动写 p = NULL；释放整条链表要先存 next 再 free 当前节点。"
+},
+
+/* ---- 4.4 文件 ---- */
+{
+  id: 227, stage: 4, unit: "4.4", topic: "文件｜打开模式", type: "判断题",
+  question: `判断：fopen("data.txt", "w") 打开一个已存在的文件时，会保留原有内容并在末尾追加。`,
+  options: ["正确", "错误"],
+  answer: "B",
+  explanation: "\"w\" 是只写模式，会把已有文件清空（文件不存在则新建）；追加要用 \"a\"。坑：只想读却误写 \"w\" 会瞬间丢掉原文件内容。"
+},
+{
+  id: 228, stage: 4, unit: "4.4", topic: "文件｜EOF 陷阱", type: "判断题",
+  question: `判断：用 while (!feof(fp)) { fscanf(fp, "%d", &x); ... } 读整数，最后一个数通常会被多处理一次。`,
+  options: ["正确", "错误"],
+  answer: "A",
+  explanation: "feof 只有在一次读操作失败之后才置位，所以最后一轮循环里 fscanf 已经读不到东西，旧值 x 又被用了一次。坑：正确写法是 while (fscanf(fp, \"%d\", &x) == 1) { ... }。"
 },
 
 /* ---------------- 编程题（每小节 6 题，共 84 题）----------------
@@ -3212,7 +3204,7 @@ function renderHome() {
   }).join("");
   $("unit-desc").textContent = state.lastStage === "all"
     ? "已选全部 4 个阶段 / 14 个周小节；想按周练，请先选一个具体阶段。"
-    : unitName(state.lastUnit) + "（每小节 6 道写代码 + 2 道选择题）";
+    : unitName(state.lastUnit) + "（每小节 6 道写代码 + 2 道结构判断题）";
 
   // 模式按钮
   const modeBox = $("mode-list");
@@ -3280,7 +3272,7 @@ $("mode-list").addEventListener("click", function (e) {
  * session.queue 是本轮的题号队列（进入时打乱一次）
  * random：范围内全部题目（写代码题为主）；coding：范围内的编程题
  * wrong ：范围内的错题快照（两种题型混合），做对即从 state.wrong 移出
- * 选择题提交即判分；编程题先看检查点与参考实现，再由本人自评记分
+ * 判断题提交即判分；编程题先看检查点与参考实现，再由本人自评记分
  * ========================================================================= */
 let session = null;
 
@@ -3338,7 +3330,7 @@ function renderQuestion() {
   $("btn-next").classList.add("hidden");
   $("round-stats").textContent = "本轮已答 " + session.roundAnswered + " 题，答对 " + session.roundCorrect + " 题";
 
-  // 编程题：显示代码编辑器，隐藏选择题选项
+  // 编程题：显示代码编辑器，隐藏判断题选项
   $("q-options").classList.toggle("hidden", isCode);
   $("code-area").classList.toggle("hidden", !isCode);
   if (isCode) {
@@ -3348,7 +3340,7 @@ function renderQuestion() {
     return;
   }
 
-  // 选择题：构造 4 个选项按钮（字母固定，内容用 textContent 防注入）
+  // 判断题：按 options 长度构造选项按钮（判断题为 2 个，字母固定，内容用 textContent 防注入）
   $("code-editor").value = "";
   const box = $("q-options");
   box.innerHTML = "";
