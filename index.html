@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f9">
+<title>C 语言刷题 · 翁恺课程</title>
+<style>
+/* =========================================================
+ * 样式：手机竖屏优先，最大宽度 520px，无动画
+ * ========================================================= */
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --line:#e3e8ef; --text:#1f2733; --muted:#6b7688;
+  --primary:#2563a8; --primary-soft:#eaf2fc;
+  --ok:#17794a; --ok-bg:#e9f7ef; --bad:#c0392b; --bad-bg:#fdeceb;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:16px; line-height:1.55;
+  -webkit-text-size-adjust:100%;
+}
+.hidden{display:none !important}
+
+/* 顶栏 */
+.topbar{padding:18px 16px 12px;text-align:center}
+.topbar .title{font-size:20px;font-weight:700;letter-spacing:.5px}
+.topbar .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+
+.wrap{max-width:520px;margin:0 auto;padding:0 14px calc(28px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px;font-weight:700;color:var(--text)}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.6}
+.center{text-align:center}
+
+/* 通用按钮 */
+.btn{
+  display:block;width:100%;min-height:50px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);
+  font-size:16px;font-family:inherit;font-weight:600;text-align:center;cursor:pointer;
+}
+.btn:active{opacity:.75}
+.btn:disabled{background:#eef1f5;color:#9aa4b2;cursor:not-allowed}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-large{min-height:54px;font-size:17px;margin-bottom:12px}
+.btn-ghost{font-size:14px;font-weight:500;min-height:46px}
+.btn-ghost.danger{color:var(--bad)}
+.btn-back{min-height:40px;width:auto;padding:6px 14px;font-size:14px;font-weight:500}
+
+.grid{display:grid;gap:8px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+
+/* 范围 / 模式选择 */
+.choice{min-height:60px;padding:8px 4px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px}
+.choice .main{font-size:15px;font-weight:700}
+.choice .sub{font-size:11px;color:var(--muted);font-weight:400;line-height:1.3}
+.choice.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.choice.on .sub{color:var(--primary)}
+.mode{min-height:60px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;font-size:15px}
+.mode .sub{font-size:11px;color:var(--muted);font-weight:400}
+.mode.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.mode.on .sub{color:var(--primary)}
+
+/* 统计 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 4px}
+.stat .num{font-size:22px;font-weight:700;line-height:1.2}
+.stat .label{font-size:11px;color:var(--muted);margin-top:2px}
+.progress{height:8px;background:#e9eef4;border-radius:99px;overflow:hidden;margin-top:12px}
+.progress-bar{height:100%;width:0;background:var(--primary);border-radius:99px}
+
+/* 答题页 */
+.quiz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.quiz-progress{font-size:14px;color:var(--muted);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tag{font-size:11px;padding:3px 8px;border-radius:99px;background:#eef2f7;color:var(--muted)}
+.tag-type{background:#fdf0e3;color:#a05a12}
+/* 题干：保留代码换行，ASCII 用等宽、中文用系统字体 */
+.q-text{
+  white-space:pre-wrap;word-break:break-word;
+  font-family:Consolas,"SF Mono",Menlo,"PingFang SC","Microsoft YaHei",monospace;
+  font-size:14.5px;line-height:1.65;
+  background:#f7f9fc;border-left:3px solid #cbd7e6;border-radius:6px;
+  padding:12px;margin-bottom:14px;
+}
+.options{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.opt{
+  display:flex;align-items:flex-start;gap:10px;width:100%;min-height:52px;
+  padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
+  font-family:inherit;font-size:15px;color:var(--text);text-align:left;cursor:pointer;
+  word-break:break-word;
+}
+.opt-letter{flex:0 0 26px;height:26px;line-height:26px;text-align:center;border-radius:6px;background:#eef2f7;color:var(--muted);font-weight:700;font-size:13px}
+.opt-text{flex:1;line-height:1.6}
+.opt.selected{border-color:var(--primary);background:var(--primary-soft)}
+.opt.selected .opt-letter{background:var(--primary);color:#fff}
+.opt.correct{border-color:var(--ok);background:var(--ok-bg)}
+.opt.correct .opt-letter{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong .opt-letter{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+
+/* 提交后的反馈 */
+.feedback{border-radius:10px;padding:12px;margin-bottom:14px;font-size:14px;line-height:1.7}
+.feedback.ok{background:var(--ok-bg);border:1px solid #bfe4cd;color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);border:1px solid #f3c4bf;color:var(--bad)}
+.fb-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.fb-exp{color:var(--text);margin-top:6px}
+.fb-note{font-size:12px;margin-top:6px;opacity:.85}
+
+/* 完成页 */
+.finish-title{font-size:20px;font-weight:700;text-align:center;margin:8px 0 12px}
+.finish-line{text-align:center;font-size:15px;margin:6px 0}
+
+/* 轻提示 */
+.toast{
+  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  max-width:86%;padding:10px 16px;border-radius:8px;background:#2b3440;color:#fff;
+  font-size:14px;text-align:center;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,.15)
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="title">C 语言刷题</div>
+  <div class="subtitle">翁恺《程序设计入门——C语言》 · 4 阶段 · 80 题</div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= 首页 ================= -->
+  <section id="view-home">
+    <div class="card">
+      <h2>1 · 选择刷题范围</h2>
+      <div id="stage-list" class="grid grid-3"></div>
+      <p id="stage-desc" class="hint"></p>
+    </div>
+
+    <div class="card">
+      <h2>2 · 选择模式</h2>
+      <div id="mode-list" class="grid grid-2"></div>
+    </div>
+
+    <button id="btn-start" class="btn btn-primary btn-large" type="button">开始刷题</button>
+
+    <div class="card">
+      <h2>当前范围统计</h2>
+      <div class="stats">
+        <div class="stat"><div id="st-done" class="num">0</div><div class="label">已刷题数</div></div>
+        <div class="stat"><div id="st-rate" class="num">0%</div><div class="label">正确率</div></div>
+        <div class="stat"><div id="st-wrong" class="num">0</div><div class="label">错题数</div></div>
+      </div>
+      <div class="progress"><div id="st-bar" class="progress-bar"></div></div>
+      <p id="stats-note" class="hint"></p>
+    </div>
+
+    <div class="card">
+      <h2>数据管理</h2>
+      <div class="grid grid-2">
+        <button id="btn-clear-wrong" class="btn btn-ghost" type="button">清空错题本</button>
+        <button id="btn-clear-all" class="btn btn-ghost danger" type="button">重置全部数据</button>
+      </div>
+      <p class="hint">错题、进度、正确率只存在本机浏览器的 localStorage 中，不联网、不上传；换设备或清除浏览器数据会丢失。</p>
+    </div>
+  </section>
+
+  <!-- ================= 答题页 ================= -->
+  <section id="view-quiz" class="hidden">
+    <div class="quiz-head">
+      <button id="btn-back" class="btn btn-back" type="button">‹ 返回首页</button>
+      <span id="quiz-progress" class="quiz-progress"></span>
+    </div>
+
+    <div class="card">
+      <!-- 题目区域 -->
+      <div id="quiz-body">
+        <div class="tags">
+          <span id="q-tag-stage" class="tag"></span>
+          <span id="q-tag-topic" class="tag"></span>
+          <span id="q-tag-type" class="tag tag-type"></span>
+        </div>
+        <div id="q-text" class="q-text"></div>
+        <div id="q-options" class="options"></div>
+        <div id="q-feedback" class="feedback hidden"></div>
+        <button id="btn-submit" class="btn btn-primary btn-large" type="button">提交答案</button>
+        <button id="btn-next" class="btn btn-primary btn-large hidden" type="button">下一题</button>
+      </div>
+      <!-- 本轮完成区域 -->
+      <div id="finish-panel" class="hidden"></div>
+    </div>
+    <p id="round-stats" class="hint center"></p>
+  </section>
+
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* =========================================================================
+ * 一、题库（QUESTION_BANK）
+ * ---------------------------------------------------------------------
+ * 以后加题：照抄一个对象，改 id（保持唯一）即可，其余字段说明：
+ *   id          : 数字，唯一
+ *   stage       : 1~4，对应翁恺课程四个阶段
+ *   topic       : 知识点标签，随便写
+ *   type        : "单选" 或 "代码输出"（代码输出题同样用 4 个单选选项）
+ *   question    : 题干；用反引号模板字符串可直接换行写代码
+ *   options     : 恰好 4 个字符串，对应 A/B/C/D
+ *   answer      : 正确选项字母 "A"/"B"/"C"/"D"
+ *   explanation : 简短解析，尽量点一个常见坑
+ * 注意：题干里若出现 C 的 '\0'，在 JS 字符串里要写成 '\\0'。
+ * ========================================================================= */
+const QUESTION_BANK = [
+
+/* ---------------- 阶段一：第1–3周 程序结构 / 变量与表达式 / 分支结构 ---------------- */
+{
+  id: 1, stage: 1, topic: "程序结构", type: "单选",
+  question: `一个可以运行的 C 程序，必须包含且只能包含一个什么？`,
+  options: ["main 函数", "printf 函数", "自定义函数", "#include <stdio.h>"],
+  answer: "A",
+  explanation: "main 是程序入口且必须唯一；头文件和其它函数都可以没有。坑：写成 mian 或 Main 链接时会找不到入口。"
+},
+{
+  id: 2, stage: 1, topic: "程序结构", type: "代码输出",
+  question: `int a = 65;
+printf("%c, %d", a, a);
+输出是什么？`,
+  options: ["65, 65", "A, A", "A, 65", "65, A"],
+  answer: "C",
+  explanation: "%c 按字符输出 65 对应的 'A'，%d 按整数输出 65。坑：格式符必须和变量类型对应，printf 参数前不要加 &。"
+},
+{
+  id: 3, stage: 1, topic: "变量与表达式", type: "代码输出",
+  question: `int a = 7, b = 2;
+printf("%d %d", a / b, a % b);
+输出是什么？`,
+  options: ["3 3", "3 1", "3.5 1", "3 0"],
+  answer: "B",
+  explanation: "两个 int 相除结果仍是 int，7/2 截断得 3；7%2 得余数 1。坑：不是 3.5，想算小数要写 7.0/2。"
+},
+{
+  id: 4, stage: 1, topic: "变量与表达式", type: "代码输出",
+  question: `int x = -7;
+printf("%d %d", x / 2, x % 2);
+（按 C99 / gcc）输出是什么？`,
+  options: ["-4 1", "-3 1", "-4 -1", "-3 -1"],
+  answer: "D",
+  explanation: "C99 起整数除法向 0 取整，-7/2 = -3；余数符号跟被除数，-7%2 = -1。坑：判断奇偶别只写 x%2==1，负数会漏。"
+},
+{
+  id: 5, stage: 1, topic: "变量与表达式", type: "单选",
+  question: `以下哪个是合法的 C 变量名？`,
+  options: ["2sum", "_total_1", "int", "a-b"],
+  answer: "B",
+  explanation: "标识符只能由字母、数字、下划线组成且不能以数字开头；int 是关键字，'-' 是减号不能出现在名字里。"
+},
+{
+  id: 6, stage: 1, topic: "变量与表达式", type: "代码输出",
+  question: `int a = 5;
+int b = a++;
+printf("%d %d", a, b);
+输出是什么？`,
+  options: ["6 6", "5 5", "5 6", "6 5"],
+  answer: "D",
+  explanation: "a++ 先把旧值 5 交给 b，再自增；++a 才是先加后用。坑：别在同一个表达式里多次改写同一个变量。"
+},
+{
+  id: 7, stage: 1, topic: "变量与表达式", type: "单选",
+  question: `表达式 10 / 4 * 4 + 10 % 4 的值是？`,
+  options: ["10", "8", "12", "2"],
+  answer: "A",
+  explanation: "/、*、% 同级左结合：10/4=2 → 2*4=8 → 10%4=2 → 10。坑：整数除法先截断了，别按数学算式算成 10+2。"
+},
+{
+  id: 8, stage: 1, topic: "变量与表达式", type: "代码输出",
+  question: `double a = 1.0 / 2;
+printf("%.1f", a);
+输出是什么？`,
+  options: ["0", "0.0", "0.5", "1.0"],
+  answer: "C",
+  explanation: "只要有一个操作数是浮点数就做浮点除法；写成 1/2 会得 0。坑：printf 里输出 double 用 %f（%.1f），不是 %d。"
+},
+{
+  id: 9, stage: 1, topic: "变量与表达式", type: "单选",
+  question: `把用户输入的整数读入 int 变量 n，正确的写法是？`,
+  options: ['scanf("%d", n);', 'scanf("%f", &n);', 'scanf("%d", &n);', 'scanf("%d", *n);'],
+  answer: "C",
+  explanation: "scanf 需要变量地址 &n，%d 对应 int；%f 是给 float 用的。坑：格式串里多写空格、逗号都会导致输入不匹配。"
+},
+{
+  id: 10, stage: 1, topic: "分支结构", type: "代码输出",
+  question: `int a = 0, b = 1, c = 2;
+if (a)
+    if (b) c = 3;
+else c = 4;
+printf("%d", c);
+输出是什么？`,
+  options: ["2", "3", "4", "0"],
+  answer: "A",
+  explanation: "else 总和最近的未配对 if 结合，缩进不算数；这里 a=0 外层为假，内层 if-else 整段被跳过，c 仍是 2。建议一律加花括号。"
+},
+{
+  id: 11, stage: 1, topic: "分支结构", type: "代码输出",
+  question: `int x = 2;
+switch (x) {
+    case 1: printf("A");
+    case 2: printf("B");
+    case 3: printf("C"); break;
+    default: printf("D");
+}
+输出是什么？`,
+  options: ["B", "BCD", "ABC", "BC"],
+  answer: "D",
+  explanation: "case 只是入口，没有 break 会一路穿透：命中 case 2 后继续输出 C 才停，default 不执行。坑：switch 的条件只能是整型表达式。"
+},
+{
+  id: 12, stage: 1, topic: "分支结构", type: "单选",
+  question: `表示「x 在 [1, 10] 区间内」的正确 C 表达式是？`,
+  options: ["1 <= x <= 10", "x >= 1 && x <= 10", "x >= 1 || x <= 10", "x > 1 & x < 10"],
+  answer: "B",
+  explanation: "数学连写不等式会变成 (1<=x)<=10，结果恒为真；要用 && 连接。坑：别把逻辑与 && 写成位与 &。"
+},
+{
+  id: 13, stage: 1, topic: "分支结构", type: "代码输出",
+  question: `int a = 0, b = 0;
+if (a++ && b++) ;
+printf("%d %d", a, b);
+输出是什么？`,
+  options: ["1 1", "0 1", "0 0", "1 0"],
+  answer: "D",
+  explanation: "&& 左边 a++ 取到旧值 0 为假，短路后右边 b++ 根本不执行；a 仍自增为 1，b 保持 0。坑：&&、|| 都有短路特性。"
+},
+{
+  id: 14, stage: 1, topic: "闰年判断", type: "单选",
+  question: `闰年条件「能被 4 整除且不能被 100 整除，或能被 400 整除」应写成？`,
+  options: [
+    "y % 4 == 0 || y % 400 == 0",
+    "(y % 4 == 0 && y % 100 != 0) || y % 400 == 0",
+    "(y % 4 == 0 || y % 100 != 0) && y % 400 == 0",
+    "y % 4 == 0 && y % 100 == 0 || y % 400 == 0"
+  ],
+  answer: "B",
+  explanation: "1900 能被 4 整除但被 100 整除，不是闰年；2000 能被 400 整除才是。坑：百年不闰、四百年再闰，别只判 y%4。"
+},
+{
+  id: 15, stage: 1, topic: "数字分解与重组", type: "代码输出",
+  question: `int n = 456;
+printf("%d %d %d", n / 100, n / 10 % 10, n % 10);
+输出是什么？`,
+  options: ["4 56 6", "6 5 4", "4 5 6", "45 5 6"],
+  answer: "C",
+  explanation: "百位 n/100、十位 n/10%10、个位 n%10，整数除法自动截断。若要倒序重组，用循环反复取 n%10 再 n/=10。"
+},
+{
+  id: 16, stage: 1, topic: "分段函数", type: "单选",
+  question: `分段函数：x<0 时 y=x；0<=x<10 时 y=2x；x>=10 时 y=3x。哪个实现正确？`,
+  options: [
+    "if (x < 0) y = x; else if (x < 10) y = 2*x; else y = 3*x;",
+    "if (x < 0) y = x; if (x < 10) y = 2*x; else y = 3*x;",
+    "if (x < 0) y = x; else y = 2*x; else y = 3*x;",
+    "if (x < 0) y = x; else if (x >= 10) y = 2*x; else y = 3*x;"
+  ],
+  answer: "A",
+  explanation: "else if 保证各分支互斥。B 中第二个独立 if 会覆盖 x<0 的结果；D 把后两段的条件和值写反了。坑：边界值 0 和 10 要代入验算。"
+},
+{
+  id: 17, stage: 1, topic: "分支结构", type: "代码输出",
+  question: `int x = 0;
+if (x = 1) printf("Y"); else printf("N");
+输出是什么？`,
+  options: ["Y", "N", "编译错误", "无输出"],
+  answer: "A",
+  explanation: "= 是赋值，表达式 x=1 的值为 1（真），所以输出 Y。坑：判断相等要用 ==，这种错误编译不报错，PTA 上表现为答案全错。"
+},
+{
+  id: 18, stage: 1, topic: "分支结构", type: "单选",
+  question: `条件表达式 a > b ? a : b 的含义是？`,
+  options: ["返回 a>b 的判断结果（0/1）", "a>b 时取 b，否则取 a", "等价于 if(a>b) a; else b;", "a>b 时取 a，否则取 b"],
+  answer: "D",
+  explanation: "三目运算符返回一个值：条件为真取冒号前的，为假取冒号后的。它是表达式不是语句，常用作求两数最大值。"
+},
+{
+  id: 19, stage: 1, topic: "字符与 ASCII", type: "代码输出",
+  question: `char c = 'a';
+printf("%c %d", c - 32, c - 'a' + 1);
+输出是什么？`,
+  options: ["a 1", "A 97", "A 1", "A 0"],
+  answer: "C",
+  explanation: "字符按 ASCII 码参与运算：'a'(97)-32='A'(65)，c-'a'+1=1。坑：大小写字母差 32，别把字符和它的码值混用。"
+},
+{
+  id: 20, stage: 1, topic: "输入输出格式", type: "单选",
+  question: `scanf("%d,%d", &a, &b); 要正确读入 3 和 5，键盘应输入？`,
+  options: ["3 5", "3,5", "3;5", "35"],
+  answer: "B",
+  explanation: "格式串里的普通字符（逗号）必须原样输入，换成空格或分号都会读入失败。坑：PTA 判题极看输出格式，逗号、空格、换行都不能多。"
+},
+
+/* ---------------- 阶段二：第4–7周 循环 / 循环控制 / 数据类型 / 函数 ---------------- */
+{
+  id: 21, stage: 2, topic: "循环", type: "代码输出",
+  question: `int s = 0;
+for (int i = 1; i <= 5; i++) s += i;
+printf("%d", s);
+输出是什么？`,
+  options: ["10", "15", "5", "16"],
+  answer: "B",
+  explanation: "循环包含 i=5，1+2+3+4+5=15。坑：边界写成 i<5 就只有 10，循环边界要代入首项和末项各验一次。"
+},
+{
+  id: 22, stage: 2, topic: "循环", type: "代码输出",
+  question: `int i = 0, s = 0;
+while (i < 5) {
+    i++;
+    s += i;
+}
+printf("%d %d", s, i);
+输出是什么？`,
+  options: ["10 5", "15 6", "15 5", "10 6"],
+  answer: "C",
+  explanation: "先自增再累加，加的是 1~5，循环结束时 i 恰好是 5。坑：i++ 放在循环体前面还是后面，结果差一项。"
+},
+{
+  id: 23, stage: 2, topic: "循环", type: "单选",
+  question: `关于 do-while 循环，下列说法正确的是？`,
+  options: ["循环体至少执行一次", "条件在循环体之前判断", "不能写 while(1) 形式", "必须配合 break 使用"],
+  answer: "A",
+  explanation: "do-while 先执行后判断，所以至少跑一次，常用于「先输入再判断是否继续」的菜单。坑：末尾的 while(条件); 分号不能漏。"
+},
+{
+  id: 24, stage: 2, topic: "循环控制", type: "代码输出",
+  question: `int s = 0;
+for (int i = 1; i <= 5; i++) {
+    if (i == 3) break;
+    s += i;
+}
+printf("%d", s);
+输出是什么？`,
+  options: ["12", "15", "3", "6"],
+  answer: "C",
+  explanation: "break 直接结束整个循环，i=3 时退出，只累加 1+2=3。坑：break 只跳出最近一层循环，嵌套循环里不会一次跳光。"
+},
+{
+  id: 25, stage: 2, topic: "循环控制", type: "代码输出",
+  question: `int s = 0;
+for (int i = 1; i <= 5; i++) {
+    if (i % 2 == 0) continue;
+    s += i;
+}
+printf("%d", s);
+输出是什么？`,
+  options: ["6", "9", "15", "3"],
+  answer: "B",
+  explanation: "continue 跳过本轮剩余语句，偶数都不加，1+3+5=9。坑：for 里 continue 后 i++ 仍会执行；while 里则要手动推进变量，否则死循环。"
+},
+{
+  id: 26, stage: 2, topic: "嵌套循环", type: "代码输出",
+  question: `int cnt = 0;
+for (int i = 1; i <= 3; i++)
+    for (int j = 1; j <= i; j++) cnt++;
+printf("%d", cnt);
+输出是什么？`,
+  options: ["6", "3", "9", "10"],
+  answer: "A",
+  explanation: "内层次数是 1+2+3=6。打印三角形图案就用 j<=i 控制每行个数。坑：内层 j 每轮都要重新初始化，漏写花括号时第二层循环可能压根不在循环体里。"
+},
+{
+  id: 27, stage: 2, topic: "循环数列求和", type: "单选",
+  question: `求 1 - 1/2 + 1/3 - 1/4 + ... 的前 n 项和，变量 sum 应声明为？`,
+  options: ["int sum = 0;", "double sum = 0;", "char sum = 0;", "float sum = 0; 且用 1/i 即可"],
+  answer: "B",
+  explanation: "累加分数必须用浮点变量，且项要写成 1.0/i 或 (double)1/i；写 1/i 会因整数除法几乎全变 0。符号可用 sign=-sign 交替。"
+},
+{
+  id: 28, stage: 2, topic: "循环数列求和", type: "代码输出",
+  question: `double s = 0;
+for (int i = 1; i <= 3; i++) s += 1.0 / i;
+printf("%.2f", s);
+输出是什么？`,
+  options: ["1.00", "1.50", "2.00", "1.83"],
+  answer: "D",
+  explanation: "1+0.5+0.333...=1.833...，%.2f 四舍五入成 1.83。坑：%.2f 只影响显示不改变 s 的值，PTA 常要求精确到小数位。"
+},
+{
+  id: 29, stage: 2, topic: "循环｜素数", type: "单选",
+  question: `判断 n 是否为素数，最合理的循环条件是？`,
+  options: ["for (i = 2; i < n; i++)", "for (i = 2; i <= n/2; i++)", "for (i = 2; i * i <= n; i++)", "for (i = 1; i <= n; i++)"],
+  answer: "C",
+  explanation: "因子成对出现，只需试到 sqrt(n)；写 i*i<=n 可避开浮点误差。坑：i 从 1 开始会把所有数判成合数，且 n<=1 要先特判。"
+},
+{
+  id: 30, stage: 2, topic: "数字分解", type: "代码输出",
+  question: `int n = 1234, s = 0;
+while (n > 0) {
+    s += n % 10;
+    n /= 10;
+}
+printf("%d", s);
+输出是什么？`,
+  options: ["4", "10", "1234", "6"],
+  answer: "B",
+  explanation: "n%10 取末位、n/=10 去掉末位，是数字分解的固定套路，1+2+3+4=10。坑：n 会被改掉，后面还要用原值就先存一份；n=0 时循环不进。"
+},
+{
+  id: 31, stage: 2, topic: "循环｜最大公约数", type: "代码输出",
+  question: `int a = 12, b = 18, t;
+while (b) { t = a % b; a = b; b = t; }
+printf("%d", a);
+输出是什么？`,
+  options: ["6", "12", "18", "3"],
+  answer: "A",
+  explanation: "辗转相除法，循环结束时 a 是最大公约数 6。坑：a%b 必须先用临时变量存，直接写 a=b; b=a%b; 就用了被改过的 a。"
+},
+{
+  id: 32, stage: 2, topic: "循环控制｜死循环", type: "单选",
+  question: `下面哪个循环会无限执行（假设相关变量已正确初始化）？`,
+  options: ["for (int i=0; i<10; i++) ;", "while (i < 10) { i++; }", "for (int i=0; i<10; i--) ;", "do { i++; } while (i < 10);"],
+  answer: "C",
+  explanation: "i-- 让 i 越来越小，永远满足 i<10。坑：PTA 上「运行超时」多半是循环变量没有朝结束方向变化，或忘了写更新语句。"
+},
+{
+  id: 33, stage: 2, topic: "数据类型", type: "单选",
+  question: `在常见 32/64 位环境下，sizeof(int) 通常是？`,
+  options: ["4", "2", "8", "1"],
+  answer: "A",
+  explanation: "sizeof 以字节为单位：char 恒为 1，int 通常 4，double 8。坑：sizeof 是运算符不是函数；sizeof(指针) 是 4 或 8，与指向的数据无关。"
+},
+{
+  id: 34, stage: 2, topic: "数据类型", type: "代码输出",
+  question: `char c = 200;
+printf("%d", c);
+（假定 char 为 8 位有符号）输出是什么？`,
+  options: ["200", "56", "-56", "编译错误"],
+  answer: "C",
+  explanation: "有符号 char 范围 -128~127，200 溢出后按补码解释成 200-256=-56。坑：存 0~255 的字节值要用 unsigned char 或 int。"
+},
+{
+  id: 35, stage: 2, topic: "数据类型", type: "单选",
+  question: `表达式 3 + 4.5 的结果类型是？`,
+  options: ["int", "float", "long", "double"],
+  answer: "D",
+  explanation: "浮点字面量默认是 double，运算前 int 自动提升为 double；写 4.5f 才是 float。坑：printf 输出 double 用 %f，scanf 读 double 要用 %lf。"
+},
+{
+  id: 36, stage: 2, topic: "函数", type: "单选",
+  question: `关于 C 函数，下列说法「错误」的是？`,
+  options: ["函数可以没有返回值（void）", "函数必须定义在 main 之前，否则无法调用", "实参向形参传值，形参修改不影响实参", "函数可以调用自己（递归）"],
+  answer: "B",
+  explanation: "只要在调用前给出函数原型声明，定义完全可以放在 main 之后。坑：漏写原型时旧编译器会猜成 int 返回，结果莫名出错。"
+},
+{
+  id: 37, stage: 2, topic: "函数｜参数传递", type: "代码输出",
+  question: `void f(int x) { x = 100; }
+int main() {
+    int a = 5; f(a);
+    printf("%d", a);
+    return 0;
+}
+输出是什么？`,
+  options: ["100", "5", "0", "不确定"],
+  answer: "B",
+  explanation: "传值调用只把 5 复制给形参 x，改 x 不影响 a。坑：想改实参要传 &a 并用 int *x 接收，这是阶段三指针的重点。"
+},
+{
+  id: 38, stage: 2, topic: "函数｜返回值", type: "单选",
+  question: `返回值类型为 int 的函数，如果某条分支没有 return，会怎样？`,
+  options: ["编译报错", "自动返回 0", "调用方得到不确定的值", "自动返回 -1"],
+  answer: "C",
+  explanation: "C 不强制检查所有分支都有 return（编译器最多警告），调用方会拿到垃圾值。坑：PTA 上表现为「有时对有时错」，先查每个分支是否都有返回。"
+},
+{
+  id: 39, stage: 2, topic: "函数｜递归", type: "代码输出",
+  question: `int f(int n) {
+    if (n <= 1) return 1;
+    return n * f(n - 1);
+}
+调用 printf("%d", f(4)); 输出是什么？`,
+  options: ["10", "4", "16", "24"],
+  answer: "D",
+  explanation: "这是求阶乘，4!=24。坑：递归必须有终止条件 n<=1，否则栈溢出；int 存不下 13! 以后会溢出。"
+},
+{
+  id: 40, stage: 2, topic: "函数｜作用域", type: "代码输出",
+  question: `int g = 1;
+void f() { int g = 5; g++; }
+int main() { f(); printf("%d", g); return 0; }
+输出是什么？`,
+  options: ["1", "6", "2", "5"],
+  answer: "A",
+  explanation: "f 里的 int g 是局部变量，遮蔽了全局 g，改动与全局无关，出函数即销毁。坑：局部变量不初始化就是随机值。"
+},
+
+/* ---------------- 阶段三：第8–10周 数组 / 指针 / 字符串 ---------------- */
+{
+  id: 41, stage: 3, topic: "数组", type: "单选",
+  question: `int a[5] = {1, 2, 3}; 中 a[3] 和 a[4] 的值是？`,
+  options: ["3 和 0", "都是 0", "不确定的随机值", "编译错误"],
+  answer: "B",
+  explanation: "部分初始化时剩余元素自动补 0。坑：完全不初始化的局部数组元素才是随机值，PTA 上常因此出现「本地对、提交错」。"
+},
+{
+  id: 42, stage: 3, topic: "数组｜越界", type: "单选",
+  question: `int a[5]; 执行 a[5] = 10; 会导致？`,
+  options: ["编译报错", "自动扩展到 6 个元素", "越界写入，结果不可预期", "a[0] 被改成 10"],
+  answer: "C",
+  explanation: "合法下标只有 0~4，C 不检查下标，越界可能改坏相邻变量或直接崩溃，且不报编译错误。坑：数组长度是 5 却写 i<=5。"
+},
+{
+  id: 43, stage: 3, topic: "数组遍历", type: "代码输出",
+  question: `int a[] = {2, 4, 6, 8}, s = 0;
+for (int i = 0; i < 4; i++) s += a[i];
+printf("%d", s);
+输出是什么？`,
+  options: ["16", "24", "0", "20"],
+  answer: "D",
+  explanation: "2+4+6+8=20。坑：遍历从 0 到 n-1，写成 i<=4 会多读一个越界元素，结果随机。"
+},
+{
+  id: 44, stage: 3, topic: "数组遍历｜最值", type: "单选",
+  question: `在 int a[n] 中找最大值，max 的初始值最合理的是？`,
+  options: ["max = a[0];", "max = 0;", "max = 999999;", "max = n;"],
+  answer: "A",
+  explanation: "用第一个元素作初值，全负数数组也正确，然后从 i=1 开始比较。坑：固定常量初值在特殊数据上一定翻车。"
+},
+{
+  id: 45, stage: 3, topic: "数组｜排序", type: "代码输出",
+  question: `int a[] = {3, 1, 2};
+for (int i = 0; i < 2; i++)
+    if (a[i] > a[i+1]) { int t = a[i]; a[i] = a[i+1]; a[i+1] = t; }
+printf("%d%d%d", a[0], a[1], a[2]);
+输出是什么？`,
+  options: ["132", "312", "213", "123"],
+  answer: "D",
+  explanation: "这是冒泡的一趟相邻比较，恰好排成 123；一般要外层 n-1 趟。坑：内层上界要写 n-i-1，否则 a[i+1] 越界。"
+},
+{
+  id: 46, stage: 3, topic: "数组｜二维数组", type: "代码输出",
+  question: `int a[2][3] = {{1,2,3},{4,5,6}};
+printf("%d", a[1][2]);
+输出是什么？`,
+  options: ["3", "5", "6", "2"],
+  answer: "C",
+  explanation: "下标从 0 开始，a[1] 是第 2 行，a[1][2] 是第 3 个元素 6。坑：定义/传参时第二维长度不能省略。"
+},
+{
+  id: 47, stage: 3, topic: "指针与地址", type: "单选",
+  question: `int a = 5; int *p = &a; 则 *p 表示？`,
+  options: ["p 的地址", "变量 a 的地址", "变量 a 的值 5", "指针 p 的值"],
+  answer: "C",
+  explanation: "& 取地址，* 解引用：p 存 a 的地址，*p 就是 a 本身。坑：定义语句里的 int * 是类型声明，不是解引用运算。"
+},
+{
+  id: 48, stage: 3, topic: "指针与地址", type: "代码输出",
+  question: `int a = 5, *p = &a;
+*p = 8;
+printf("%d", a);
+输出是什么？`,
+  options: ["5", "8", "地址值", "编译错误"],
+  answer: "B",
+  explanation: "通过 *p 可以间接修改 a，这是函数内改实参的常用手段。坑：千万别对没初始化的野指针解引用。"
+},
+{
+  id: 49, stage: 3, topic: "指针｜传址调用", type: "单选",
+  question: `要在函数里交换 main 中两个 int 变量的值，函数原型应为？`,
+  options: ["void swap(int *a, int *b);", "void swap(int a, int b);", "void swap(int &a, int &b);", "int swap(int a, int b);"],
+  answer: "A",
+  explanation: "C 只有传值，需传地址并在函数内用 *a、*b 交换，调用写 swap(&x, &y)。坑：& 引用是 C++ 语法，C 不支持。"
+},
+{
+  id: 50, stage: 3, topic: "指针｜数组", type: "代码输出",
+  question: `int a[] = {10, 20, 30};
+int *p = a;
+printf("%d", *(p + 2));
+输出是什么？`,
+  options: ["10", "20", "地址", "30"],
+  answer: "D",
+  explanation: "数组名 a 退化为首元素地址，p+2 按元素大小偏移 2 个 int，*(p+2) 等价于 a[2]。坑：a++ 不合法，数组名不是可修改的左值。"
+},
+{
+  id: 51, stage: 3, topic: "指针｜指针运算", type: "单选",
+  question: `int a[5]; int *p = a; 则 p + 1 的地址比 p 大多少？`,
+  options: ["1 字节", "sizeof(int) 字节（通常 4）", "5 字节", "不确定"],
+  answer: "B",
+  explanation: "指针加减以「元素」为单位，编译器自动乘上类型大小；这样 p+i 才正好指向 a[i]。坑：void* 不能直接做算术运算。"
+},
+{
+  id: 52, stage: 3, topic: "指针｜数组作参数", type: "单选",
+  question: `在 void f(int a[]) 内部，sizeof(a) 通常得到？`,
+  options: ["整个数组字节数", "10", "指针大小（4 或 8）", "编译错误"],
+  answer: "C",
+  explanation: "数组作函数参数会退化成指针，sizeof 得到的是指针大小。坑：数组长度必须另用一个参数传进去，别在函数里求长度。"
+},
+{
+  id: 53, stage: 3, topic: "字符串长度", type: "单选",
+  question: `char s[] = "abc"; 数组 s 的长度是？`,
+  options: ["4", "3", "5", "不确定"],
+  answer: "A",
+  explanation: "字符串末尾自动补结束符 '\\0'，共 4 字节；strlen(s)=3，sizeof(s)=4。坑：定义字符数组时要给结束符多留一个位置。"
+},
+{
+  id: 54, stage: 3, topic: "字符串长度", type: "代码输出",
+  question: `char s[] = "a\\0bc";
+printf("%d %d", (int)strlen(s), (int)sizeof(s));
+输出是什么？`,
+  options: ["1 4", "4 5", "5 5", "1 5"],
+  answer: "D",
+  explanation: "字符为 'a','\\0','b','c','\\0'：strlen 遇到第一个 '\\0' 就停，得 1；sizeof 统计整个数组得 5。坑：字符串中间不要插结束符。"
+},
+{
+  id: 55, stage: 3, topic: "字符串", type: "单选",
+  question: `比较两个字符串内容是否相等，正确写法是？`,
+  options: ["if (s1 == s2)", "if (strcmp(s1, s2) == 0)", "if (s1 = s2)", "if (strlen(s1) == strlen(s2))"],
+  answer: "B",
+  explanation: "== 比的是地址不是内容，长度相等也不代表内容相同。坑：strcmp 返回 0 才表示相等，返回负数/正数表示大小关系。"
+},
+{
+  id: 56, stage: 3, topic: "字符串", type: "单选",
+  question: `把字符串 t 复制到字符数组 s，正确写法是？`,
+  options: ["s = t;", "strcat(s, t);", "strcpy(s, t);", "s == t;"],
+  answer: "C",
+  explanation: "数组名是地址常量，不能被赋值；strcpy 才是复制。坑：复制前要确保 s 足够大，否则缓冲区溢出是常见崩溃点。"
+},
+{
+  id: 57, stage: 3, topic: "字符串｜输入", type: "单选",
+  question: `读入一个不含空格的单词到 char s[100]，最合适的写法是？`,
+  options: ['scanf("%s", &s);', 'scanf("%c", s);', 'gets(s[100]);', 'scanf("%s", s);'],
+  answer: "D",
+  explanation: "数组名本身就是地址，不用再取 &；%s 遇空白结束并自动补 '\\0'。坑：含空格的整行要用 fgets，gets 已因溢出风险被废弃。"
+},
+{
+  id: 58, stage: 3, topic: "字符串遍历", type: "代码输出",
+  question: `char s[] = "AbC";
+int n = 0;
+for (int i = 0; s[i] != '\\0'; i++)
+    if (s[i] >= 'a' && s[i] <= 'z') n++;
+printf("%d", n);
+输出是什么？`,
+  options: ["3", "0", "1", "2"],
+  answer: "C",
+  explanation: "只有 'b' 是小写，n=1。坑：遍历字符串应以 s[i]!='\\0' 为条件；用 sizeof(s) 会把结束符也算进去。"
+},
+{
+  id: 59, stage: 3, topic: "字符串长度", type: "代码输出",
+  question: `char s[] = "hello";
+printf("%d", (int)strlen(s + 2));
+输出是什么？`,
+  options: ["3", "5", "4", "2"],
+  answer: "A",
+  explanation: "s+2 指向第 3 个字符 'l'，从那里数到结束符是 \"llo\"，长度 3。坑：指针偏移后 strlen 从新位置开始计数。"
+},
+{
+  id: 60, stage: 3, topic: "指针｜字符串常量", type: "单选",
+  question: `char *p = "abc"; 再执行 p[0] = 'x'; 会怎样？`,
+  options: ["正常改成 xbc", "未定义行为，常常运行时崩溃", "编译错误", "p 变成野指针"],
+  answer: "B",
+  explanation: '字符串常量在只读区，只能读不能写；要修改请写成 char p[] = "abc"; 把内容拷到栈数组。坑：编译器未必报错，运行才崩。'
+},
+
+/* ---------------- 阶段四：第11–14周 结构类型 / 程序结构 / 链表 / 文件 ---------------- */
+{
+  id: 61, stage: 4, topic: "结构体定义", type: "单选",
+  question: `定义一个含 int 学号、char 姓名数组的结构体，正确的是？`,
+  options: [
+    "struct Student { int id; char name[20]; };",
+    "struct Student { int id; char name[20]; }",
+    "struct { int id; char name[20]; } = Student;",
+    "typedef int Student;"
+  ],
+  answer: "A",
+  explanation: "结构体定义右花括号后必须有分号。坑：少这个分号是结构体题里最高频的编译错误。"
+},
+{
+  id: 62, stage: 4, topic: "结构体定义", type: "单选",
+  question: `已有 struct Student（未用 typedef），声明变量 s 的正确方式是？`,
+  options: ["Student s;", "struct s;", "struct Student s;", "Student struct s;"],
+  answer: "C",
+  explanation: "C 里结构体标签不是独立类型名，必须带 struct；用 typedef 起别名后才能写 Student s;（那是 C++ 的写法）。"
+},
+{
+  id: 63, stage: 4, topic: "结构体｜成员访问", type: "单选",
+  question: `struct Student *p = &s; 要访问成员 id，正确写法是？`,
+  options: ["p.id", "p->id", "*p.id", "&p->id"],
+  answer: "B",
+  explanation: "指针用 ->，结构体变量用 .；(*p).id 也对但括号不能省，因为 . 优先级高于 *。坑：p->id 等价于 (*p).id。"
+},
+{
+  id: 64, stage: 4, topic: "结构类型｜typedef", type: "单选",
+  question: `typedef struct { int x; int y; } Point; 的作用是？`,
+  options: ["定义一个变量 Point", "定义函数 Point", "分配内存", "让 Point 成为该匿名结构体类型的别名"],
+  answer: "D",
+  explanation: "typedef 只起别名、不分配内存，之后可直接写 Point p;。坑：链表节点自引用时，结构体内部仍要写 struct Node *next。"
+},
+{
+  id: 65, stage: 4, topic: "结构体｜初始化", type: "代码输出",
+  question: `struct P { int x, y; };
+struct P a = {3};
+printf("%d %d", a.x, a.y);
+输出是什么？`,
+  options: ["3 3", "3 0", "0 0", "3 随机值"],
+  answer: "B",
+  explanation: "和数组一样，部分初始化时未给值的成员补 0。坑：完全不初始化的局部结构体成员是随机值。"
+},
+{
+  id: 66, stage: 4, topic: "结构体数组", type: "单选",
+  question: `struct Student cls[30]; 访问第 2 个学生的 id，正确的是？`,
+  options: ["cls[2].id", "cls.id[1]", "cls[1].id", "cls->id[1]"],
+  answer: "C",
+  explanation: "下标从 0 开始，第 2 个是 cls[1]。坑：结构体数组在成绩统计类题目里常配合排序，交换时要整体交换结构体变量。"
+},
+{
+  id: 67, stage: 4, topic: "结构类型｜共用体", type: "单选",
+  question: `关于 union（共用体），下列说法正确的是？`,
+  options: ["所有成员共用同一块内存，大小为最大成员", "所有成员同时各占内存", "大小等于各成员之和", "不能含 int 成员"],
+  answer: "A",
+  explanation: "union 同一时刻只有一个成员有效，写新成员会覆盖旧成员；struct 才是各成员分别占用内存。坑：别指望同时读出两个成员。"
+},
+{
+  id: 68, stage: 4, topic: "程序结构｜static", type: "代码输出",
+  question: `void f() {
+    static int c = 0;
+    c++;
+    printf("%d ", c);
+}
+int main() { f(); f(); return 0; }
+输出是什么？`,
+  options: ["1 1", "0 1", "2 2", "1 2"],
+  answer: "D",
+  explanation: "static 局部变量只初始化一次、函数结束后值仍保留；普通局部变量每次调用都重新初始化。坑：它仍是局部变量，别处不能直接访问。"
+},
+{
+  id: 69, stage: 4, topic: "程序结构｜全局变量", type: "单选",
+  question: `要在另一个 .c 文件里使用已定义的全局变量 int g;，应写？`,
+  options: ["int g;", "static int g;", "extern int g;", "global int g;"],
+  answer: "C",
+  explanation: "extern 是声明而非定义、不分配内存。坑：在头文件里写 int g; 被多个源文件包含会造成重复定义；static 则把变量限制在本文件。"
+},
+{
+  id: 70, stage: 4, topic: "程序结构｜宏定义", type: "单选",
+  question: `#define SQR(x) x*x 时，SQR(2+3) 展开后的值是？`,
+  options: ["25", "11", "10", "编译错误"],
+  answer: "B",
+  explanation: "宏只做文本替换：2+3*2+3 = 11。坑：安全写法是 #define SQR(x) ((x)*(x))，参数和整体都要加括号。"
+},
+{
+  id: 71, stage: 4, topic: "程序结构｜头文件", type: "单选",
+  question: `关于头文件，下列说法「错误」的是？`,
+  options: [
+    "头文件里一般放函数原型和结构体定义",
+    "防止重复包含可用 #ifndef / #define / #endif",
+    '#include "my.h" 先在当前目录查找',
+    "头文件里定义全局变量是推荐做法"
+  ],
+  answer: "D",
+  explanation: "头文件被多个 .c 包含时定义全局变量会重复定义；应放 extern 声明，定义只放在某一个 .c 里。坑：<> 与 \"\" 的查找路径不同。"
+},
+{
+  id: 72, stage: 4, topic: "链表｜节点定义", type: "单选",
+  question: `单链表节点的正确定义是？`,
+  options: [
+    "struct Node { int data; struct Node *next; };",
+    "struct Node { int data; struct Node next; };",
+    "struct Node { int data; int *next; };",
+    "typedef struct { int data; Node *next; } Node;"
+  ],
+  answer: "A",
+  explanation: "next 必须是指针；结构体不能包含自身类型的成员（会无限递归，大小无法确定）。坑：匿名 typedef 里提前使用 Node 这个名字是看不见的。"
+},
+{
+  id: 73, stage: 4, topic: "链表｜动态内存", type: "单选",
+  question: `为 struct Node 节点申请内存并让 p 指向它，正确的是？`,
+  options: ["p = malloc(sizeof(p));", "p = alloc(struct Node);", "p = malloc(sizeof(struct Node));", "p = sizeof(struct Node);"],
+  answer: "C",
+  explanation: "sizeof(p) 只是指针大小（4/8 字节），申请太少会越界写坏堆。坑：malloc 后要判 NULL，用完 free，之后别再访问已释放节点。"
+},
+{
+  id: 74, stage: 4, topic: "链表｜插入删除", type: "单选",
+  question: `在单链表中删除 p 之后的节点 q，正确顺序是？`,
+  options: ["free(p); p = q;", "p->next = q->next; free(q);", "q->next = p->next; free(p);", "p->next = q; free(q);"],
+  answer: "B",
+  explanation: "先让前驱绕过被删节点，再 free(q)。坑：先 free 就丢了 q->next，会造成断链或野指针；头节点删除还要单独处理。"
+},
+{
+  id: 75, stage: 4, topic: "链表｜空指针", type: "单选",
+  question: `遍历 while (p != NULL) 的链表，最后一个节点的 next 应该是？`,
+  options: ["指向头节点", "指向自身", "未初始化也可以", "NULL"],
+  answer: "D",
+  explanation: "尾节点 next 置 NULL 作为结束标志。坑：执行 p = p->next 前必须确认 p 非空，对 NULL 解引用会直接崩溃。"
+},
+{
+  id: 76, stage: 4, topic: "文件｜打开模式", type: "单选",
+  question: `打开一个已存在的文本文件、只读取数据，应该用？`,
+  options: ['fopen("a.txt", "w")', 'fopen("a.txt", "a")', 'fopen("a.txt", "r")', 'fopen("a.txt", "wb")'],
+  answer: "C",
+  explanation: "\"w\" 会清空原文件，\"a\" 是追加写，\"wb\" 是二进制写。坑：\"r\" 要求文件已存在，否则 fopen 返回 NULL。"
+},
+{
+  id: 77, stage: 4, topic: "文件｜打开模式", type: "单选",
+  question: `关于 fopen 的 "a" 模式，下列说法正确的是？`,
+  options: ["只能在文件末尾追加，文件不存在则创建", "清空文件后从头写", "只读", "要求文件必须已存在"],
+  answer: "A",
+  explanation: "\"a\" = append，所有写操作都发生在文件尾。坑：\"r+\" 可读可写但要求文件存在，\"w+\" 会先清空，别混用。"
+},
+{
+  id: 78, stage: 4, topic: "文件｜打开失败", type: "单选",
+  question: `FILE *fp = fopen("data.txt", "r"); 之后最应该做的是？`,
+  options: ["直接 fscanf", "判断 if (fp == NULL) 并处理", "先 fclose", "先 fprintf"],
+  answer: "B",
+  explanation: "文件不存在或无权限时 fopen 返回 NULL，不判断就读写会崩溃。坑：PTA 文件题常要求打开失败时输出提示并 return。"
+},
+{
+  id: 79, stage: 4, topic: "文件｜读写", type: "代码输出",
+  question: `FILE *fp = fopen("t.txt", "w");
+fprintf(fp, "%d", 12);
+fclose(fp);
+fp = fopen("t.txt", "r");
+int x;
+fscanf(fp, "%d", &x);
+printf("%d", x);
+fclose(fp);
+（假设所有文件操作都成功）输出是什么？`,
+  options: ["0", "随机值", "编译错误", "12"],
+  answer: "D",
+  explanation: "fprintf/fscanf 与 printf/scanf 用法一致，只是多了 FILE* 参数。坑：写完先 fclose 再重新以 \"r\" 打开，且 fscanf 别漏 &x。"
+},
+{
+  id: 80, stage: 4, topic: "文件｜EOF", type: "单选",
+  question: `用 fgetc 读到文件末尾，判断结束的正确写法是？`,
+  options: [
+    "while (!feof(fp)) { c = fgetc(fp); ... }",
+    "while (fgetc(fp)) { ... }",
+    "while ((c = fgetc(fp)) != EOF) { ... }",
+    "while (c != EOF) { ... }（不更新 c）"
+  ],
+  answer: "C",
+  explanation: "feof 只有在读过失败之后才变真，先判断 feof 会多处理一次 EOF。坑：接收 fgetc 的变量必须是 int，char 装不下 EOF(-1)。"
+}
+
+];
+
+/* =========================================================================
+ * 二、常量、本地存储
+ * ---------------------------------------------------------------------
+ * 全部持久化数据放在一个 localStorage key 里：
+ *   seen     : { 题目id: {t:累计作答次数, c:答对次数} }  → 已刷题数 / 正确率
+ *   wrong    : { 题目id: {n:累计错误次数, ts:最近错的时间} } → 错题本
+ *   answered / correct : 全局累计（保留备用）
+ *   lastStage / lastMode : 记住上次选择
+ * 每次提交答案后立即 saveState()，刷新或关掉浏览器数据不丢。
+ * ========================================================================= */
+const STORE_KEY = "wengkai_c_quiz_v1";
+const LETTERS = ["A", "B", "C", "D"];
+
+const STAGES = [
+  { key: "1",   name: "阶段一", short: "第1–3周",  desc: "程序结构 / 变量与表达式 / 分支结构" },
+  { key: "2",   name: "阶段二", short: "第4–7周",  desc: "循环 / 循环控制 / 数据类型 / 函数" },
+  { key: "3",   name: "阶段三", short: "第8–10周", desc: "数组 / 指针 / 字符串" },
+  { key: "4",   name: "阶段四", short: "第11–14周",desc: "结构类型 / 程序结构 / 链表 / 文件" },
+  { key: "all", name: "全部",   short: "80 题",    desc: "四个阶段全部题目" }
+];
+const MODES = [
+  { key: "random", name: "随机刷题", sub: "范围内随机抽题" },
+  { key: "wrong",  name: "错题重练", sub: "只练错题，做对移出" }
+];
+
+/* 题目 id → 题目对象，方便按队列取题 */
+const BY_ID = {};
+QUESTION_BANK.forEach(function (q) { BY_ID[q.id] = q; });
+
+function freshState() {
+  return { version: 1, seen: {}, wrong: {}, answered: 0, correct: 0,
+           lastStage: "all", lastMode: "random" };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return freshState();
+    const data = JSON.parse(raw);
+    // 兼容字段缺失，避免旧数据或手改数据导致页面报错
+    const base = freshState();
+    return {
+      version: 1,
+      seen:     data.seen     || {},
+      wrong:    data.wrong    || {},
+      answered: data.answered || 0,
+      correct:  data.correct  || 0,
+      lastStage: data.lastStage || base.lastStage,
+      lastMode:  data.lastMode  || base.lastMode
+    };
+  } catch (e) {
+    return freshState(); // 数据损坏或 localStorage 被禁用时回退到空状态
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  } catch (e) {
+    toast("本地存储不可用，本次进度可能无法保存");
+  }
+}
+
+/* =========================================================================
+ * 三、通用工具与统计
+ * ========================================================================= */
+const $ = function (id) { return document.getElementById(id); };
+let toastTimer = null;
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.add("hidden"); }, 2200);
+}
+
+/* 按范围取题：'all' 取全部，否则取对应 stage */
+function poolOf(stageKey) {
+  return QUESTION_BANK.filter(function (q) {
+    return stageKey === "all" || String(q.stage) === stageKey;
+  });
+}
+
+/* 当前范围的统计：已刷（去重）、正确率（按累计作答次数）、错题数 */
+function statsOf(stageKey) {
+  const pool = poolOf(stageKey);
+  let done = 0, times = 0, right = 0, wrong = 0;
+  pool.forEach(function (q) {
+    const rec = state.seen[q.id];
+    if (rec) { done++; times += rec.t || 0; right += rec.c || 0; }
+    if (state.wrong[q.id]) wrong++;
+  });
+  return {
+    done: done, total: pool.length, wrong: wrong, times: times, right: right,
+    rate: times ? Math.round(right / times * 100) : 0
+  };
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function showView(name) {
+  $("view-home").classList.toggle("hidden", name !== "home");
+  $("view-quiz").classList.toggle("hidden", name !== "quiz");
+  window.scrollTo(0, 0);
+}
+
+function stageName(key) {
+  const s = STAGES.find(function (x) { return x.key === key; });
+  return s ? s.name : "全部";
+}
+
+/* =========================================================================
+ * 四、首页渲染
+ * ========================================================================= */
+function renderHome() {
+  // 阶段按钮
+  const stageBox = $("stage-list");
+  stageBox.innerHTML = STAGES.map(function (s) {
+    const on = s.key === state.lastStage ? " on" : "";
+    return '<button type="button" class="btn choice' + on + '" data-stage="' + s.key + '">' +
+             '<span class="main">' + s.name + '</span><span class="sub">' + s.short + '</span>' +
+           '</button>';
+  }).join("");
+
+  // 模式按钮
+  const modeBox = $("mode-list");
+  modeBox.innerHTML = MODES.map(function (m) {
+    const on = m.key === state.lastMode ? " on" : "";
+    return '<button type="button" class="btn mode' + on + '" data-mode="' + m.key + '">' +
+             '<span>' + m.name + '</span><span class="sub">' + m.sub + '</span>' +
+           '</button>';
+  }).join("");
+
+  // 范围说明
+  const cur = STAGES.find(function (s) { return s.key === state.lastStage; }) || STAGES[4];
+  $("stage-desc").textContent = cur.name + " · " + cur.short + "：" + cur.desc;
+
+  // 统计
+  const st = statsOf(state.lastStage);
+  $("st-done").textContent  = st.done + "/" + st.total;
+  $("st-rate").textContent  = st.rate + "%";
+  $("st-wrong").textContent = st.wrong;
+  $("st-bar").style.width   = (st.total ? st.done / st.total * 100 : 0) + "%";
+  $("stats-note").textContent = "累计作答 " + st.times + " 次，答对 " + st.right +
+    " 次；已刷题数按不重复题目计，正确率按作答次数计。";
+
+  // 开始按钮
+  const btn = $("btn-start");
+  if (state.lastMode === "wrong") {
+    btn.textContent = st.wrong ? "开始错题重练（" + st.wrong + " 题）" : "错题本是空的";
+    btn.disabled = st.wrong === 0;
+  } else {
+    btn.textContent = "开始刷题（" + st.total + " 题）";
+    btn.disabled = st.total === 0;
+  }
+}
+
+/* 首页交互：事件委托 */
+$("stage-list").addEventListener("click", function (e) {
+  const b = e.target.closest("[data-stage]");
+  if (!b) return;
+  state.lastStage = b.dataset.stage;
+  saveState();
+  renderHome();
+});
+$("mode-list").addEventListener("click", function (e) {
+  const b = e.target.closest("[data-mode]");
+  if (!b) return;
+  state.lastMode = b.dataset.mode;
+  saveState();
+  renderHome();
+});
+
+/* =========================================================================
+ * 五、答题流程
+ * ---------------------------------------------------------------------
+ * session.queue 是本轮的题号队列（进入时打乱一次）
+ * 随机模式：范围内全部题目
+ * 错题模式：范围内的错题快照，答对即从 state.wrong 移出
+ * 答错 → 加入 / 保留在错题本；答对 → 移出错题本（两种模式一致）
+ * ========================================================================= */
+let session = null;
+
+function startQuiz() {
+  const pool = poolOf(state.lastStage);
+  let ids;
+  if (state.lastMode === "wrong") {
+    ids = pool.filter(function (q) { return !!state.wrong[q.id]; })
+              .map(function (q) { return q.id; });
+    if (!ids.length) { toast("当前范围没有错题，先去随机刷题吧"); return; }
+  } else {
+    ids = pool.map(function (q) { return q.id; });
+  }
+  shuffle(ids);
+  session = {
+    stageKey: state.lastStage,
+    mode: state.lastMode,
+    queue: ids,
+    index: 0,
+    selected: null,
+    submitted: false,
+    roundAnswered: 0,
+    roundCorrect: 0
+  };
+  showView("quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (session.index >= session.queue.length) { renderFinish(); return; }
+
+  const q = BY_ID[session.queue[session.index]];
+  session.selected = null;
+  session.submitted = false;
+
+  $("quiz-body").classList.remove("hidden");
+  $("finish-panel").classList.add("hidden");
+  $("quiz-progress").textContent = "第 " + (session.index + 1) + " / " + session.queue.length + " 题";
+  $("q-tag-stage").textContent = stageName(String(q.stage));
+  $("q-tag-topic").textContent = q.topic;
+  $("q-tag-type").textContent  = q.type;
+  $("q-text").textContent      = q.question; // textContent 保证题库里的 < > 等符号安全显示
+
+  // 选项：字母用固定文本，选项内容用 textContent
+  const box = $("q-options");
+  box.innerHTML = "";
+  q.options.forEach(function (text, i) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "opt";
+    btn.dataset.index = String(i);
+    const letter = document.createElement("span");
+    letter.className = "opt-letter";
+    letter.textContent = LETTERS[i];
+    const body = document.createElement("span");
+    body.className = "opt-text";
+    body.textContent = text;
+    btn.appendChild(letter);
+    btn.appendChild(body);
+    btn.addEventListener("click", function () { selectOption(i); });
+    box.appendChild(btn);
+  });
+
+  $("q-feedback").classList.add("hidden");
+  $("btn-submit").classList.remove("hidden");
+  $("btn-next").classList.add("hidden");
+  $("round-stats").textContent = "本轮已答 " + session.roundAnswered + " 题，答对 " + session.roundCorrect + " 题";
+}
+
+function selectOption(i) {
+  if (session.submitted) return;
+  session.selected = i;
+  const opts = $("q-options").children;
+  for (let k = 0; k < opts.length; k++) opts[k].classList.toggle("selected", k === i);
+}
+
+function submitAnswer() {
+  if (session.submitted) return;
+  if (session.selected === null) { toast("请先选择一个答案"); return; }
+
+  const q = BY_ID[session.queue[session.index]];
+  const isCorrect = LETTERS[session.selected] === q.answer;
+  session.submitted = true;
+  session.roundAnswered++;
+  if (isCorrect) session.roundCorrect++;
+
+  // ① 更新答题记录
+  const rec = state.seen[q.id] || { t: 0, c: 0 };
+  rec.t++;
+  if (isCorrect) rec.c++;
+  state.seen[q.id] = rec;
+  state.answered++;
+  if (isCorrect) state.correct++;
+
+  // ② 更新错题本：答对移出，答错加入/累计
+  let removed = false;
+  if (isCorrect) {
+    if (state.wrong[q.id]) { delete state.wrong[q.id]; removed = true; }
+  } else {
+    const w = state.wrong[q.id] || { n: 0, ts: 0 };
+    w.n++;
+    w.ts = Date.now();
+    state.wrong[q.id] = w;
+  }
+  saveState(); // 立即持久化，刷新/关闭浏览器不丢
+
+  // ③ 选项着色：正确项标绿，误选项标红
+  const opts = $("q-options").children;
+  for (let k = 0; k < opts.length; k++) {
+    opts[k].disabled = true;
+    opts[k].classList.remove("selected");
+    if (LETTERS[k] === q.answer) opts[k].classList.add("correct");
+    else if (k === session.selected) opts[k].classList.add("wrong");
+  }
+
+  // ④ 反馈：对错、正确答案、简短解析
+  const fb = $("q-feedback");
+  fb.className = "feedback " + (isCorrect ? "ok" : "bad");
+  fb.innerHTML = '<div class="fb-title"></div><div class="fb-line"></div>' +
+                 '<div class="fb-line"></div><div class="fb-exp"></div><div class="fb-note"></div>';
+  const lines = fb.querySelectorAll(".fb-line");
+  fb.querySelector(".fb-title").textContent = isCorrect ? "✓ 回答正确" : "✗ 回答错误";
+  lines[0].textContent = "正确答案：" + q.answer + "（" + q.options[LETTERS.indexOf(q.answer)] + "）";
+  lines[1].textContent = "你的答案：" + LETTERS[session.selected];
+  fb.querySelector(".fb-exp").textContent = "解析：" + q.explanation;
+  fb.querySelector(".fb-note").textContent = removed
+    ? "✓ 该题已从错题本移除" : (isCorrect ? "" : "✗ 已加入错题本，可在「错题重练」中巩固");
+  fb.classList.remove("hidden");
+
+  $("btn-submit").classList.add("hidden");
+  $("btn-next").classList.remove("hidden");
+  $("btn-next").textContent = (session.index + 1 >= session.queue.length) ? "查看本轮结果" : "下一题";
+  $("round-stats").textContent = "本轮已答 " + session.roundAnswered + " 题，答对 " + session.roundCorrect + " 题";
+}
+
+function renderFinish() {
+  $("quiz-body").classList.add("hidden");
+  const panel = $("finish-panel");
+  panel.classList.remove("hidden");
+  $("quiz-progress").textContent = "本轮完成";
+  $("round-stats").textContent = "";
+
+  const rest = poolOf(session.stageKey).filter(function (q) { return !!state.wrong[q.id]; }).length;
+  const rate = session.roundAnswered ? Math.round(session.roundCorrect / session.roundAnswered * 100) : 0;
+  panel.innerHTML =
+    '<div class="finish-title">本轮完成</div>' +
+    '<div class="finish-line">共作答 <b>' + session.roundAnswered + '</b> 题，答对 <b>' +
+      session.roundCorrect + '</b> 题，正确率 <b>' + rate + '%</b></div>' +
+    '<div class="finish-line" style="color:var(--muted);font-size:13px">当前范围错题本剩余 ' + rest + ' 题</div>' +
+    '<div style="height:14px"></div>' +
+    '<button type="button" class="btn btn-primary btn-large" data-act="again">再来一轮</button>' +
+    '<button type="button" class="btn btn-ghost" data-act="home">返回首页</button>';
+}
+
+/* 答题页交互 */
+$("btn-start").addEventListener("click", startQuiz);
+$("btn-back").addEventListener("click", function () { showView("home"); renderHome(); });
+$("btn-submit").addEventListener("click", submitAnswer);
+$("btn-next").addEventListener("click", function () { session.index++; renderQuestion(); });
+$("finish-panel").addEventListener("click", function (e) {
+  const b = e.target.closest("[data-act]");
+  if (!b) return;
+  if (b.dataset.act === "again") startQuiz();
+  else { showView("home"); renderHome(); }
+});
+
+/* =========================================================================
+ * 六、数据管理（二次确认后再清）
+ * ========================================================================= */
+$("btn-clear-wrong").addEventListener("click", function () {
+  if (!Object.keys(state.wrong).length) { toast("错题本已经是空的"); return; }
+  if (!confirm("确定清空错题本？此操作不可撤销。")) return;
+  state.wrong = {};
+  saveState();
+  renderHome();
+  toast("错题本已清空");
+});
+$("btn-clear-all").addEventListener("click", function () {
+  if (!confirm("确定重置全部数据？已刷题数、正确率、错题本都会被清除，且不可撤销。")) return;
+  const keep = { lastStage: state.lastStage, lastMode: state.lastMode };
+  state = Object.assign(freshState(), keep);
+  saveState();
+  renderHome();
+  toast("全部数据已重置");
+});
+
+/* =========================================================================
+ * 七、启动
+ * ========================================================================= */
+renderHome();
+showView("home");
+</script>
+</body>
+</html>
