@@ -156,7 +156,7 @@ body{
 
 <header class="topbar">
   <div class="title">C 语言刷题</div>
-  <div class="subtitle">翁恺《程序设计入门——C语言》 · 4 阶段 / 14 小节 · 112 题（84 写代码 + 28 判断）</div>
+  <div class="subtitle">翁恺《程序设计入门——C语言》 · 4 阶段 / 14 小节 · 140 题 · 低 / 高难度可选</div>
 </header>
 
 <main class="wrap">
@@ -176,9 +176,15 @@ body{
     </div>
 
     <div class="card">
-      <h2>3 · 选择模式</h2>
+      <h2>3 · 选择难度</h2>
+      <div id="level-list" class="grid grid-3"></div>
+      <p class="hint">默认低难度（84 题）：结构判断题（正确/错误二选一）+ 基础编程题 + 28 道起手代码接近填空的入门题，只读 1~2 个数、单层循环就能写完。高难度（56 题）是综合与进阶编程题（排序、指针、链表、文件等）。难度只影响抽题范围，已刷记录、正确率和错题本按题目保存，切换不会丢。</p>
+    </div>
+
+    <div class="card">
+      <h2>4 · 选择模式</h2>
       <div id="mode-list" class="grid grid-3"></div>
-      <p class="hint">题库以写代码为主：84 道编程题 + 28 道结构判断题（switch-case、do-while、break/continue 等常见结构），随机刷题会混合出题。建议先选一个具体周小节（6 道写代码 + 2 道判断题）练完再换。一轮会走完所选范围，随时可返回首页。</p>
+      <p class="hint">题库共 140 题（112 道编程 + 28 道结构判断），随机刷题会按当前难度混合出题。建议先选一个具体周小节，从低难度练完再切高难度。一轮会走完所选范围，随时可返回首页。</p>
     </div>
 
     <button id="btn-start" class="btn btn-primary btn-large" type="button">开始刷题</button>
@@ -219,6 +225,7 @@ body{
           <span id="q-tag-unit" class="tag"></span>
           <span id="q-tag-topic" class="tag"></span>
           <span id="q-tag-type" class="tag tag-type"></span>
+          <span id="q-tag-level" class="tag"></span>
         </div>
         <div id="q-text" class="q-text"></div>
 
@@ -266,10 +273,12 @@ body{
  *   id          : 数字，唯一
  *   stage       : 1~4，对应翁恺课程四个阶段
  *   unit        : "1.1" ~ "4.4"，14 个周小节之一（见后面的 UNITS 常量）
+ *   level       : "easy" 低难度 / "hard" 高难度，首页按此筛选，加题时必填
  *   topic       : 知识点标签，随便写
  *   type        : "判断题" / "编程题"（判断题只有 2 个选项）
  *   question    : 题干；用反引号模板字符串可直接换行写代码
- *   题库构成：84 道编程题 + 28 道结构判断题，写代码是主体
+ *   题库构成：共 140 题 = 112 道编程题（含 28 道入门题）+ 28 道结构判断题
+ *            低难度 84 题 / 高难度 56 题，写代码仍是主体
  *   ---- 判断题（判断某个说法或一小段代码的结构规则是否成立）----
  *   options     : 固定 2 个字符串 ["正确", "错误"]，对应 A/B
  *   answer      : "A"（说法正确）或 "B"（说法错误）
@@ -290,14 +299,14 @@ const QUESTION_BANK = [
 
 /* ---- 1.1 程序结构与输入输出 ---- */
 {
-  id: 201, stage: 1, unit: "1.1", topic: "程序结构｜main", type: "判断题",
+  id: 201, stage: 1, unit: "1.1", level: "easy", topic: "程序结构｜main", type: "判断题",
   question: `判断：一个 C 程序可以没有 main 函数，只要写了其它自定义函数就能编译运行。`,
   options: ["正确", "错误"],
   answer: "B",
   explanation: "main 是程序入口，必须有且只能有一个；链接时找不到 main 会直接报错。坑：写成 mian、Main 或者把 main 放进某个自定义函数里都不行。"
 },
 {
-  id: 202, stage: 1, unit: "1.1", topic: "程序结构｜语句与分号", type: "判断题",
+  id: 202, stage: 1, unit: "1.1", level: "easy", topic: "程序结构｜语句与分号", type: "判断题",
   question: `判断：像 printf("hi"); 这样的语句，末尾的分号属于语句本身，不能省略。`,
   options: ["正确", "错误"],
   answer: "A",
@@ -306,14 +315,14 @@ const QUESTION_BANK = [
 
 /* ---- 1.2 变量与表达式 ---- */
 {
-  id: 203, stage: 1, unit: "1.2", topic: "表达式｜整数除法", type: "判断题",
+  id: 203, stage: 1, unit: "1.2", level: "easy", topic: "表达式｜整数除法", type: "判断题",
   question: `判断：int a = 7, b = 2; 时 a / b 的值是 3，而 7 / 2.0 的值是 3.5。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "两个 int 相除结果仍是 int，小数部分被截断；只要有一个操作数是浮点，就先转换再按 double 计算。坑：想求平均值要写 / 3.0 或先乘 1.0，写 / 3 会丢掉小数。"
 },
 {
-  id: 204, stage: 1, unit: "1.2", topic: "表达式｜自增", type: "判断题",
+  id: 204, stage: 1, unit: "1.2", level: "easy", topic: "表达式｜自增", type: "判断题",
   question: `判断：a++ 和 ++a 单独写成一条语句时效果相同，所以 b = a++; 与 b = ++a; 的结果也总是一样。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -322,7 +331,7 @@ const QUESTION_BANK = [
 
 /* ---- 1.3 分支结构：switch-case 重点 ---- */
 {
-  id: 205, stage: 1, unit: "1.3", topic: "switch-case｜穿透", type: "判断题",
+  id: 205, stage: 1, unit: "1.3", level: "easy", topic: "switch-case｜穿透", type: "判断题",
   question: `switch (x) {
   case 1: printf("A");
   case 2: printf("B"); break;
@@ -334,7 +343,7 @@ const QUESTION_BANK = [
   explanation: "case 1 末尾没有 break，会继续「穿透」执行 case 2 的语句，实际输出 AB，遇到 break 才跳出 switch，default 不会执行。坑：case 只是入口标签，不是分支边界；故意共用代码时也要注释说明。"
 },
 {
-  id: 206, stage: 1, unit: "1.3", topic: "switch-case｜标签规则", type: "判断题",
+  id: 206, stage: 1, unit: "1.3", level: "easy", topic: "switch-case｜标签规则", type: "判断题",
   question: `判断：switch 的 case 后面必须是整型常量表达式，不能写成 case x > 10: 这样的范围条件。`,
   options: ["正确", "错误"],
   answer: "A",
@@ -343,14 +352,14 @@ const QUESTION_BANK = [
 
 /* ---- 2.1 循环基础：do-while 重点 ---- */
 {
-  id: 207, stage: 2, unit: "2.1", topic: "do-while｜执行次数", type: "判断题",
+  id: 207, stage: 2, unit: "2.1", level: "easy", topic: "do-while｜执行次数", type: "判断题",
   question: `判断：即使循环条件一开始就是假，do { ... } while (cond); 的循环体也至少会执行一次。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "do-while 是先执行循环体、后判断条件；while 和 for 是先判断条件。坑：do-while 的 while(cond) 后面那个分号不能漏，而且条件为真才继续，别和 until 的语义搞反。"
 },
 {
-  id: 208, stage: 2, unit: "2.1", topic: "for｜表达式省略", type: "判断题",
+  id: 208, stage: 2, unit: "2.1", level: "easy", topic: "for｜表达式省略", type: "判断题",
   question: `判断：for (;;) 因为三个表达式都省略了，编译器会报错。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -359,14 +368,14 @@ const QUESTION_BANK = [
 
 /* ---- 2.2 循环控制与嵌套 ---- */
 {
-  id: 209, stage: 2, unit: "2.2", topic: "continue｜while 与 for 差异", type: "判断题",
+  id: 209, stage: 2, unit: "2.2", level: "easy", topic: "continue｜while 与 for 差异", type: "判断题",
   question: `判断：在 while 循环里执行 continue 会跳过本次剩余语句、直接回到条件判断；如果变量更新语句被跳过，可能形成死循环。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "while 里的 continue 直接跳到条件判断；for 里的 continue 会先执行 i++ 那个表达式再判断条件，这是两者最关键的差别。坑：while (i < 10) { if (...) continue; i++; } 一旦命中 continue，i 永远不变。"
 },
 {
-  id: 210, stage: 2, unit: "2.2", topic: "break｜嵌套循环", type: "判断题",
+  id: 210, stage: 2, unit: "2.2", level: "easy", topic: "break｜嵌套循环", type: "判断题",
   question: `判断：只要把 break 写在内层循环里，就能一次跳出任意多层嵌套循环。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -375,14 +384,14 @@ const QUESTION_BANK = [
 
 /* ---- 2.3 数据类型 ---- */
 {
-  id: 211, stage: 2, unit: "2.3", topic: "数据类型｜char 溢出", type: "判断题",
+  id: 211, stage: 2, unit: "2.3", level: "easy", topic: "数据类型｜char 溢出", type: "判断题",
   question: `判断：在 char 为 8 位有符号的机器上，char c = 200; printf("%d", c); 通常输出 -56。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "200 超出 -128~127，按补码重新解释就是 200-256=-56。坑：想存 0~255 的字节值要用 unsigned char 或 int；char 是否有符号是实现相关的，不能想当然。"
 },
 {
-  id: 212, stage: 2, unit: "2.3", topic: "数据类型｜强制转换", type: "判断题",
+  id: 212, stage: 2, unit: "2.3", level: "easy", topic: "数据类型｜强制转换", type: "判断题",
   question: `判断：(int)3.9 的结果是 4，因为强制类型转换会自动四舍五入。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -391,14 +400,14 @@ const QUESTION_BANK = [
 
 /* ---- 2.4 函数 ---- */
 {
-  id: 213, stage: 2, unit: "2.4", topic: "函数｜参数传递", type: "判断题",
+  id: 213, stage: 2, unit: "2.4", level: "easy", topic: "函数｜参数传递", type: "判断题",
   question: `判断：void f(int x) { x = 100; } 里修改形参 x，不会改变调用方传进来的那个实参变量。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "C 的参数按值传递，形参是实参的一份副本；要改调用方的变量必须传地址（int *p）并对 *p 赋值。坑：数组作参数时传的是首元素地址，属于例外，函数里改 a[i] 会影响原数组。"
 },
 {
-  id: 214, stage: 2, unit: "2.4", topic: "函数｜递归", type: "判断题",
+  id: 214, stage: 2, unit: "2.4", level: "easy", topic: "函数｜递归", type: "判断题",
   question: `判断：递归函数可以没有终止条件，编译器会在栈溢出之前自动停止递归。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -407,14 +416,14 @@ const QUESTION_BANK = [
 
 /* ---- 3.1 数组 ---- */
 {
-  id: 215, stage: 3, unit: "3.1", topic: "数组｜初始化", type: "判断题",
+  id: 215, stage: 3, unit: "3.1", level: "easy", topic: "数组｜初始化", type: "判断题",
   question: `判断：int a[5] = {1, 2, 3}; 中，没有显式给出初值的 a[3] 和 a[4] 会被自动置为 0。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "只要写了初始化列表，剩余元素就自动补 0（指针补 NULL）。坑：如果完全不初始化，局部数组里是随机值，别把两种情况记混。"
 },
 {
-  id: 216, stage: 3, unit: "3.1", topic: "数组｜越界", type: "判断题",
+  id: 216, stage: 3, unit: "3.1", level: "easy", topic: "数组｜越界", type: "判断题",
   question: `判断：int a[5]; a[5] = 10; 会被编译器检查出来并报错，因此不用担心。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -423,14 +432,14 @@ const QUESTION_BANK = [
 
 /* ---- 3.2 指针 ---- */
 {
-  id: 217, stage: 3, unit: "3.2", topic: "指针｜数组退化", type: "判断题",
+  id: 217, stage: 3, unit: "3.2", level: "easy", topic: "指针｜数组退化", type: "判断题",
   question: `判断：在函数 void f(int a[]) 内部，sizeof(a) 得到的是整个数组占用的字节数。`,
   options: ["正确", "错误"],
   answer: "B",
   explanation: "数组作参数会退化成指向首元素的指针，sizeof(a) 得到的是指针大小（64 位下通常是 8）。坑：需要数组长度就要额外传一个 n 参数，别在函数里用 sizeof 算。"
 },
 {
-  id: 218, stage: 3, unit: "3.2", topic: "指针｜解引用", type: "判断题",
+  id: 218, stage: 3, unit: "3.2", level: "easy", topic: "指针｜解引用", type: "判断题",
   question: `判断：int a = 5; int *p = &a; *p = 8; 执行之后 a 的值变成 8。`,
   options: ["正确", "错误"],
   answer: "A",
@@ -439,14 +448,14 @@ const QUESTION_BANK = [
 
 /* ---- 3.3 字符串 ---- */
 {
-  id: 219, stage: 3, unit: "3.3", topic: "字符串｜结束符", type: "判断题",
+  id: 219, stage: 3, unit: "3.3", level: "easy", topic: "字符串｜结束符", type: "判断题",
   question: `判断：char s[] = "abc"; 中，strlen(s) 的值是 3，sizeof(s) 的值是 4。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "编译器会在字符串末尾自动补一个 '\\0'，strlen 统计到结束符为止不算它，sizeof 统计整个数组。坑：自己声明 char s[3] = \"abc\"; 就没地方放结束符，用 %s 输出会读到越界。"
 },
 {
-  id: 220, stage: 3, unit: "3.3", topic: "字符串｜常量只读", type: "判断题",
+  id: 220, stage: 3, unit: "3.3", level: "easy", topic: "字符串｜常量只读", type: "判断题",
   question: `判断：char *p = "abc"; p[0] = 'x'; 是合法写法，因为 p 指向一个可修改的字符数组。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -455,14 +464,14 @@ const QUESTION_BANK = [
 
 /* ---- 4.1 结构类型 ---- */
 {
-  id: 221, stage: 4, unit: "4.1", topic: "结构体｜定义语法", type: "判断题",
+  id: 221, stage: 4, unit: "4.1", level: "easy", topic: "结构体｜定义语法", type: "判断题",
   question: `判断：定义结构体时右花括号后面的分号可以省略，写成 struct P { int x, y } 就行。`,
   options: ["正确", "错误"],
   answer: "B",
   explanation: "结构体定义是一条声明，}; 里的分号不能省，否则编译器会报错或把后面的变量声明解析错。坑：typedef struct { ... } Point; 同样必须有分号；定义的同时写变量也要注意位置。"
 },
 {
-  id: 222, stage: 4, unit: "4.1", topic: "结构体｜成员访问", type: "判断题",
+  id: 222, stage: 4, unit: "4.1", level: "easy", topic: "结构体｜成员访问", type: "判断题",
   question: `判断：已有 struct Student s, *p = &s;，p->id 等价于 (*p).id。`,
   options: ["正确", "错误"],
   answer: "A",
@@ -471,14 +480,14 @@ const QUESTION_BANK = [
 
 /* ---- 4.2 程序结构 ---- */
 {
-  id: 223, stage: 4, unit: "4.2", topic: "宏定义｜参数展开", type: "判断题",
+  id: 223, stage: 4, unit: "4.2", level: "easy", topic: "宏定义｜参数展开", type: "判断题",
   question: `判断：#define SQR(x) x*x 时，SQR(2+3) 的计算结果是 25。`,
   options: ["正确", "错误"],
   answer: "B",
   explanation: "宏是纯文本替换，展开成 2+3*2+3，按优先级先算乘法得 11。坑：正确写法是 #define SQR(x) ((x)*(x))，参数和整体都要加括号，宏定义末尾也不要写分号。"
 },
 {
-  id: 224, stage: 4, unit: "4.2", topic: "static｜局部变量", type: "判断题",
+  id: 224, stage: 4, unit: "4.2", level: "easy", topic: "static｜局部变量", type: "判断题",
   question: `判断：函数里的 static int c = 0; 只在第一次调用时初始化，之后每次调用都保留上一次的值。`,
   options: ["正确", "错误"],
   answer: "A",
@@ -487,14 +496,14 @@ const QUESTION_BANK = [
 
 /* ---- 4.3 链表 ---- */
 {
-  id: 225, stage: 4, unit: "4.3", topic: "链表｜自引用结构", type: "判断题",
+  id: 225, stage: 4, unit: "4.3", level: "easy", topic: "链表｜自引用结构", type: "判断题",
   question: `判断：单链表节点里可以写 struct Node *next; 指向同类型节点，即使 struct Node 还没定义完。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "结构体可以包含指向自身类型的指针，因为指针大小是固定的，编译器不需要知道结构体完整大小。坑：写成成员 struct Node next; 是非法的，那会造成无限递归定义。"
 },
 {
-  id: 226, stage: 4, unit: "4.3", topic: "链表｜内存释放", type: "判断题",
+  id: 226, stage: 4, unit: "4.3", level: "easy", topic: "链表｜内存释放", type: "判断题",
   question: `判断：free(p) 之后 p 会被自动置为 NULL，所以再 free(p) 一次也是安全的。`,
   options: ["正确", "错误"],
   answer: "B",
@@ -503,21 +512,21 @@ const QUESTION_BANK = [
 
 /* ---- 4.4 文件 ---- */
 {
-  id: 227, stage: 4, unit: "4.4", topic: "文件｜打开模式", type: "判断题",
+  id: 227, stage: 4, unit: "4.4", level: "easy", topic: "文件｜打开模式", type: "判断题",
   question: `判断：fopen("data.txt", "w") 打开一个已存在的文件时，会保留原有内容并在末尾追加。`,
   options: ["正确", "错误"],
   answer: "B",
   explanation: "\"w\" 是只写模式，会把已有文件清空（文件不存在则新建）；追加要用 \"a\"。坑：只想读却误写 \"w\" 会瞬间丢掉原文件内容。"
 },
 {
-  id: 228, stage: 4, unit: "4.4", topic: "文件｜EOF 陷阱", type: "判断题",
+  id: 228, stage: 4, unit: "4.4", level: "easy", topic: "文件｜EOF 陷阱", type: "判断题",
   question: `判断：用 while (!feof(fp)) { fscanf(fp, "%d", &x); ... } 读整数，最后一个数通常会被多处理一次。`,
   options: ["正确", "错误"],
   answer: "A",
   explanation: "feof 只有在一次读操作失败之后才置位，所以最后一轮循环里 fscanf 已经读不到东西，旧值 x 又被用了一次。坑：正确写法是 while (fscanf(fp, \"%d\", &x) == 1) { ... }。"
 },
 
-/* ---------------- 编程题（每小节 6 题，共 84 题）----------------
+/* ---------------- 编程题（每小节 8 题，共 112 题：基础 / 入门 / 进阶）----
  * 编程题额外字段：
  *   starter   : 起手代码，进入题目时预填进编辑器
  *   reference : 参考实现，提交后对照
@@ -525,7 +534,7 @@ const QUESTION_BANK = [
  *              比对时会去掉注释和所有空白，因此缩进、换行差异不影响
  * --------------------------------------------------------------------- */
 {
-  id: 101, stage: 1, unit: "1.1", topic: "程序结构与输入输出", type: "编程题",
+  id: 101, stage: 1, unit: "1.1", level: "easy", topic: "程序结构与输入输出", type: "编程题",
   question: `读入两个整数 a、b，输出它们的和。
 输入格式：一行两个整数，空格分隔。
 输出格式：a + b = 和（例如 3 + 5 = 8，空格位置要完全一致）。`,
@@ -548,7 +557,7 @@ int main() {
   explanation: "scanf 别漏 &；格式串里的空格能匹配任意空白。坑：PTA 按字符比对输出，多的空格、中文符号都会判错。"
 },
 {
-  id: 102, stage: 1, unit: "1.1", topic: "程序结构与输入输出", type: "编程题",
+  id: 102, stage: 1, unit: "1.1", level: "easy", topic: "程序结构与输入输出", type: "编程题",
   question: `读入一个大写字母，输出对应的小写字母和它的 ASCII 码，用一个空格分隔。
 例如输入 A，输出 a 97。`,
   starter: `#include <stdio.h>
@@ -571,7 +580,7 @@ int main() {
   explanation: "大写与小写字母的 ASCII 码差 32，%c 输出字符、%d 输出码值。坑：%c 会读走上次残留的换行，必要时写成 scanf(\" %c\", &c)。"
 },
 {
-  id: 103, stage: 1, unit: "1.2", topic: "数字分解与重组", type: "编程题",
+  id: 103, stage: 1, unit: "1.2", level: "easy", topic: "数字分解与重组", type: "编程题",
   question: `读入一个三位正整数，输出它的百位、十位、个位，用一个空格分隔。
 例如输入 456，输出 4 5 6。`,
   starter: `#include <stdio.h>
@@ -593,7 +602,7 @@ int main() {
   explanation: "整数除法自动截断：百位 n/100、十位 n/10%10、个位 n%10。坑：十位别写成 n%100，也别漏掉 %10。"
 },
 {
-  id: 104, stage: 1, unit: "1.2", topic: "变量与表达式", type: "编程题",
+  id: 104, stage: 1, unit: "1.2", level: "easy", topic: "变量与表达式", type: "编程题",
   question: `读入整数分钟数 m，把它换算成小时和分钟。
 输出格式：x 小时 y 分钟（例如输入 130，输出 2 小时 10 分钟）。`,
   starter: `#include <stdio.h>
@@ -615,7 +624,7 @@ int main() {
   explanation: "整除得小时、取余得剩余分钟。坑：别把两个运算符用反；输出里的中文和空格要照抄题目格式。"
 },
 {
-  id: 105, stage: 1, unit: "1.3", topic: "分段函数", type: "编程题",
+  id: 105, stage: 1, unit: "1.3", level: "easy", topic: "分段函数", type: "编程题",
   question: `读入整数 x：x < 0 输出 x；0 <= x < 10 输出 2*x；x >= 10 输出 3*x。
 输出一个整数即可。`,
   starter: `#include <stdio.h>
@@ -640,7 +649,7 @@ int main() {
   explanation: "用 else if 保证三段互斥。坑：写成两个独立 if 时，负数会被后一段重新覆盖；边界 0 和 10 要代入验算。"
 },
 {
-  id: 106, stage: 1, unit: "1.3", topic: "闰年判断", type: "编程题",
+  id: 106, stage: 1, unit: "1.3", level: "easy", topic: "闰年判断", type: "编程题",
   question: `读入年份 y，是闰年输出 YES，否则输出 NO。
 闰年：能被 4 整除且不能被 100 整除，或能被 400 整除。`,
   starter: `#include <stdio.h>
@@ -665,7 +674,7 @@ int main() {
   explanation: "1900 不是闰年、2000 是闰年。坑：&& 优先级高于 ||，括号别乱省；只判 y%4 会在整百年上出错。"
 },
 {
-  id: 107, stage: 2, unit: "2.1", topic: "循环｜数列求和", type: "编程题",
+  id: 107, stage: 2, unit: "2.1", level: "easy", topic: "循环｜数列求和", type: "编程题",
   question: `读入正整数 n，求 1 + 2 + ... + n，输出和。`,
   starter: `#include <stdio.h>
 
@@ -689,7 +698,7 @@ int main() {
   explanation: "sum 必须初始化为 0。坑：i 从 0 开始或写成 i < n 都会少加一项；n 较大时 int 可能溢出。"
 },
 {
-  id: 108, stage: 2, unit: "2.1", topic: "循环｜数列求和", type: "编程题",
+  id: 108, stage: 2, unit: "2.1", level: "easy", topic: "循环｜数列求和", type: "编程题",
   question: `读入正整数 n，求 1 - 1/2 + 1/3 - 1/4 + ... ± 1/n，输出保留 3 位小数。`,
   starter: `#include <stdio.h>
 
@@ -715,7 +724,7 @@ int main() {
   explanation: "必须用 1.0/i 或 sign/i 做浮点除法。坑：写 1/i 除第一项外全是 0；符号可用 sign = -sign 交替。"
 },
 {
-  id: 109, stage: 2, unit: "2.2", topic: "嵌套循环", type: "编程题",
+  id: 109, stage: 2, unit: "2.2", level: "easy", topic: "嵌套循环", type: "编程题",
   question: `读入 n，输出 n 行星号：第 i 行有 i 个 *，每行结束换行，行内不要空格。
 例如 n=3 输出三行：* / ** / ***。`,
   starter: `#include <stdio.h>
@@ -742,7 +751,7 @@ int main() {
   explanation: "内层上界 j <= i 控制每行个数，换行放在外层循环体内、内层循环之后。坑：内层 j 每轮都要重新从 1 开始。"
 },
 {
-  id: 110, stage: 2, unit: "2.2", topic: "循环控制｜素数", type: "编程题",
+  id: 110, stage: 2, unit: "2.2", level: "easy", topic: "循环控制｜素数", type: "编程题",
   question: `读入整数 n，是素数输出 YES，否则输出 NO（n 可能为 1 或负数）。`,
   starter: `#include <stdio.h>
 
@@ -767,7 +776,7 @@ int main() {
   explanation: "因子成对出现，试除到 i*i<=n 即可。坑：n<=1 要特判；i 从 1 开始会把所有数判成合数。"
 },
 {
-  id: 111, stage: 2, unit: "2.3", topic: "数据类型｜字符", type: "编程题",
+  id: 111, stage: 2, unit: "2.3", level: "easy", topic: "数据类型｜字符", type: "编程题",
   question: `读入一个字符：若是小写字母则转成大写输出，否则原样输出。`,
   starter: `#include <stdio.h>
 
@@ -789,7 +798,7 @@ int main() {
   explanation: "字符按 ASCII 码比较和运算，小写减 32 变大写。坑：必须先判断范围，否则数字、标点会被减坏。"
 },
 {
-  id: 112, stage: 2, unit: "2.3", topic: "数据类型｜混合运算", type: "编程题",
+  id: 112, stage: 2, unit: "2.3", level: "easy", topic: "数据类型｜混合运算", type: "编程题",
   question: `读入摄氏温度整数 c，输出华氏温度 f = c * 9 / 5 + 32，保留 1 位小数。`,
   starter: `#include <stdio.h>
 
@@ -812,7 +821,7 @@ int main() {
   explanation: "写 9.0/5 才会做浮点除法。坑：9/5 是整数除法得 1，结果差一大截；printf 输出 double 用 %f。"
 },
 {
-  id: 113, stage: 2, unit: "2.4", topic: "函数", type: "编程题",
+  id: 113, stage: 2, unit: "2.4", level: "easy", topic: "函数", type: "编程题",
   question: `定义函数 int max(int a, int b) 返回两者较大值；main 读入两个整数并输出 max 的结果。`,
   starter: `#include <stdio.h>
 
@@ -839,7 +848,7 @@ int main() {
   explanation: "函数要先定义或先给原型声明。坑：形参名和实参名可以不同；返回值必须 return，别只在函数里 printf。"
 },
 {
-  id: 114, stage: 2, unit: "2.4", topic: "函数｜递归", type: "编程题",
+  id: 114, stage: 2, unit: "2.4", level: "easy", topic: "函数｜递归", type: "编程题",
   question: `用递归写函数求 n 的阶乘（n <= 12），读入 n 输出结果。`,
   starter: `#include <stdio.h>
 
@@ -867,7 +876,7 @@ int main() {
   explanation: "递归必须有终止条件 n<=1。坑：int 只存得下 12!，用 long long 并配 %lld 输出。"
 },
 {
-  id: 115, stage: 3, unit: "3.1", topic: "数组遍历", type: "编程题",
+  id: 115, stage: 3, unit: "3.1", level: "easy", topic: "数组遍历", type: "编程题",
   question: `读入 n（n<=100）和 n 个整数，输出它们的平均值，保留 2 位小数。`,
   starter: `#include <stdio.h>
 
@@ -892,7 +901,7 @@ int main() {
   explanation: "数组要开够，下标 0~n-1。坑：sum/n 是整数除法，必须先把其中一个转成 double。"
 },
 {
-  id: 116, stage: 3, unit: "3.1", topic: "数组遍历｜逆序", type: "编程题",
+  id: 116, stage: 3, unit: "3.1", level: "easy", topic: "数组遍历｜逆序", type: "编程题",
   question: `读入 n 和 n 个整数，逆序输出，数与数之间一个空格，行末不要多余空格。`,
   starter: `#include <stdio.h>
 
@@ -917,7 +926,7 @@ int main() {
   explanation: "逆序遍历从 n-1 到 0。坑：写成 i > 0 会漏掉 a[0]；行末多一个空格常被 PTA 判格式错。"
 },
 {
-  id: 117, stage: 3, unit: "3.2", topic: "指针｜传址调用", type: "编程题",
+  id: 117, stage: 3, unit: "3.2", level: "easy", topic: "指针｜传址调用", type: "编程题",
   question: `写函数 void swap(int *a, int *b) 交换两个整数；main 读入 x、y，调用后输出交换结果。`,
   starter: `#include <stdio.h>
 
@@ -947,7 +956,7 @@ int main() {
   explanation: "形参是指针，函数内必须用 *a、*b 才改得到实参。坑：调用要传地址 &x、&y；只交换形参变量本身无效。"
 },
 {
-  id: 118, stage: 3, unit: "3.2", topic: "指针｜指针运算", type: "编程题",
+  id: 118, stage: 3, unit: "3.2", level: "easy", topic: "指针｜指针运算", type: "编程题",
   question: `用指针遍历 int a[5] = {1,2,3,4,5} 并求和，输出 15（要求用 p++ 移动指针）。`,
   starter: `#include <stdio.h>
 
@@ -971,7 +980,7 @@ int main() {
   explanation: "p+1 按一个 int 的大小移动，所以 p < a+5 正好覆盖 5 个元素。坑：别拿 sizeof(a) 当元素个数。"
 },
 {
-  id: 119, stage: 3, unit: "3.3", topic: "字符串长度", type: "编程题",
+  id: 119, stage: 3, unit: "3.3", level: "easy", topic: "字符串长度", type: "编程题",
   question: `不用 strlen，自己写 int mylen(char s[]) 返回字符串长度；main 读入一个不含空格的单词并输出长度。`,
   starter: `#include <stdio.h>
 
@@ -1000,7 +1009,7 @@ int main() {
   explanation: "字符串以 '\\0' 结束，长度不含它。坑：用 sizeof(s) 会把整个数组都算上，且数组作参数已退化成指针。"
 },
 {
-  id: 120, stage: 3, unit: "3.3", topic: "字符串遍历", type: "编程题",
+  id: 120, stage: 3, unit: "3.3", level: "easy", topic: "字符串遍历", type: "编程题",
   question: `读入一个不含空格的字符串，统计其中数字字符的个数并输出。`,
   starter: `#include <stdio.h>
 
@@ -1025,7 +1034,7 @@ int main() {
   explanation: "遍历到 '\\0' 为止。坑：字符比较要用字符常量 '0'、'9'，写 s[i] >= 0 && s[i] <= 9 是拿 ASCII 码和整数比。"
 },
 {
-  id: 121, stage: 4, unit: "4.1", topic: "结构体定义", type: "编程题",
+  id: 121, stage: 4, unit: "4.1", level: "easy", topic: "结构体定义", type: "编程题",
   question: `定义 struct Student { int id; char name[20]; };，读入学号和不含空格的姓名，输出 "学号 姓名"。`,
   starter: `#include <stdio.h>
 
@@ -1053,7 +1062,7 @@ int main() {
   explanation: "读 int 成员要 &s.id，读字符数组成员直接写 s.name（数组名即地址）。坑：结构体定义右花括号后的分号别漏。"
 },
 {
-  id: 122, stage: 4, unit: "4.1", topic: "结构体数组", type: "编程题",
+  id: 122, stage: 4, unit: "4.1", level: "easy", topic: "结构体数组", type: "编程题",
   question: `读入 n 个学生的姓名和成绩（n<=50），输出最高分学生的姓名和成绩，空格分隔。`,
   starter: `#include <stdio.h>
 
@@ -1086,7 +1095,7 @@ int main() {
   explanation: "用下标 max 记录最大值位置，最后才能同时取到姓名和成绩。坑：结构体数组读入 int 成员要 &a[i].score。"
 },
 {
-  id: 123, stage: 4, unit: "4.2", topic: "程序结构｜static", type: "编程题",
+  id: 123, stage: 4, unit: "4.2", level: "easy", topic: "程序结构｜static", type: "编程题",
   question: `写函数 f()，用 static 局部变量记录被调用次数；main 调用 3 次，输出 1 2 3（每个数后跟一个空格）。`,
   starter: `#include <stdio.h>
 
@@ -1113,7 +1122,7 @@ int main() {
   explanation: "static 局部变量只初始化一次，值跨调用保留。坑：写成普通 int c = 0，三次都会输出 1。"
 },
 {
-  id: 124, stage: 4, unit: "4.2", topic: "程序结构｜宏定义", type: "编程题",
+  id: 124, stage: 4, unit: "4.2", level: "easy", topic: "程序结构｜宏定义", type: "编程题",
   question: `用宏 SQR(x) 计算平方：读入两个整数 a、b，输出 (a+b) 的平方。要求宏定义加足括号。`,
   starter: `#include <stdio.h>
 
@@ -1138,7 +1147,7 @@ int main() {
   explanation: "宏只是文本替换，参数和整体都要加括号。坑：#define SQR(x) x*x 时 SQR(2+3) 展开成 2+3*2+3 = 11。"
 },
 {
-  id: 125, stage: 4, unit: "4.3", topic: "链表｜创建节点", type: "编程题",
+  id: 125, stage: 4, unit: "4.3", level: "easy", topic: "链表｜创建节点", type: "编程题",
   question: `定义单链表节点 struct Node，用 malloc 创建两个节点并把它们连起来，输出两个节点的 data。`,
   starter: `#include <stdio.h>
 #include <stdlib.h>
@@ -1174,7 +1183,7 @@ int main() {
   explanation: "自引用只能是指针；坑：sizeof(head) 只是指针大小，尾节点 next 必须置 NULL，malloc 之后要判 NULL 并在结束时 free。"
 },
 {
-  id: 126, stage: 4, unit: "4.3", topic: "链表｜遍历", type: "编程题",
+  id: 126, stage: 4, unit: "4.3", level: "easy", topic: "链表｜遍历", type: "编程题",
   question: `写函数 int sum(struct Node *head) 遍历链表累加 data 并返回；main 中构造两个节点验证输出 3。`,
   starter: `#include <stdio.h>
 
@@ -1217,7 +1226,7 @@ int main() {
   explanation: "先判 p 非空再解引用，p = p->next 推进。坑：空链表 head==NULL 时循环一次都不进，应返回 0。"
 },
 {
-  id: 127, stage: 4, unit: "4.4", topic: "文件｜读写", type: "编程题",
+  id: 127, stage: 4, unit: "4.4", level: "easy", topic: "文件｜读写", type: "编程题",
   question: `把 1 2 3 三个整数写入文件 t.txt，再重新打开读回来，输出它们的和 6。`,
   starter: `#include <stdio.h>
 
@@ -1243,7 +1252,7 @@ int main() {
   explanation: "写完先 fclose 再以 \"r\" 打开，确保缓冲区落盘。坑：\"w\" 会清空原文件，fscanf 别漏 &；正式代码还要判 fp==NULL。"
 },
 {
-  id: 128, stage: 4, unit: "4.4", topic: "文件｜EOF", type: "编程题",
+  id: 128, stage: 4, unit: "4.4", level: "easy", topic: "文件｜EOF", type: "编程题",
   question: `打开 in.txt 统计其中的字符个数并输出；文件打不开时输出 cannot open。`,
   starter: `#include <stdio.h>
 
@@ -1270,7 +1279,7 @@ int main() {
 
 /* ---- 1.1 程序结构与输入输出 ---- */
 {
-  id: 129, stage: 1, unit: "1.1", topic: "输入输出｜浮点格式", type: "编程题",
+  id: 129, stage: 1, unit: "1.1", level: "hard", topic: "输入输出｜浮点格式", type: "编程题",
   question: `读入圆的半径 r（浮点数），输出周长和面积，用一个空格分隔，均保留 2 位小数，圆周率取 3.14159。
 输入格式：一个浮点数 r。
 输出格式：周长 面积（例如输入 1，输出 6.28 3.14）。`,
@@ -1294,7 +1303,7 @@ int main() {
   explanation: "double 读入必须用 %lf，printf 输出用 %f / %.2f。坑：周长是 2*pi*r，别和面积 pi*r*r 写反；半径声明成 int 会丢掉小数。"
 },
 {
-  id: 130, stage: 1, unit: "1.1", topic: "变量与表达式｜整数除法", type: "编程题",
+  id: 130, stage: 1, unit: "1.1", level: "hard", topic: "变量与表达式｜整数除法", type: "编程题",
   question: `读入三个整数 a、b、c，输出它们的平均值，保留 2 位小数。
 输入格式：一行三个整数，空格分隔。
 输出格式：例如输入 1 2 4，输出 2.33。`,
@@ -1317,7 +1326,7 @@ int main() {
   explanation: "三个 int 相除仍是 int，结果会被截断，所以除数写成 3.0 让表达式升为 double。坑：写成 (a+b+c)/3 时输入 1 2 4 只会输出 2.00。"
 },
 {
-  id: 131, stage: 1, unit: "1.1", topic: "输入输出｜字符串格式", type: "编程题",
+  id: 131, stage: 1, unit: "1.1", level: "hard", topic: "输入输出｜字符串格式", type: "编程题",
   question: `读入一个不含空格的姓名 name 和整数年龄 age，输出一行：name is age years old
 输入格式：例如 Tom 18
 输出格式：例如 Tom is 18 years old`,
@@ -1341,7 +1350,7 @@ int main() {
   explanation: "%s 对应的字符数组名本身就是地址，不要再写 &name；int 的 age 却必须写 &age。坑：%s 遇到空格就停，姓名含空格要用 fgets。"
 },
 {
-  id: 132, stage: 1, unit: "1.1", topic: "输入输出｜域宽对齐", type: "编程题",
+  id: 132, stage: 1, unit: "1.1", level: "hard", topic: "输入输出｜域宽对齐", type: "编程题",
   question: `读入整数 n（1~9），在一行内输出 n、n 的平方、n 的立方，每个数占 4 列宽（用 %4d），数字右对齐。
 输入格式：一个整数 n。
 输出格式：例如输入 3，三个数分别是 3、9、27，各占 4 列。`,
@@ -1366,7 +1375,7 @@ int main() {
 
 /* ---- 1.2 变量与表达式 ---- */
 {
-  id: 133, stage: 1, unit: "1.2", topic: "数字分解与重组", type: "编程题",
+  id: 133, stage: 1, unit: "1.2", level: "hard", topic: "数字分解与重组", type: "编程题",
   question: `读入一个四位正整数 n，输出它四个数位上的数字之和。
 输入格式：一个四位整数。
 输出格式：例如输入 1234，输出 10。`,
@@ -1393,7 +1402,7 @@ int main() {
   explanation: "拆位靠「先整除、再对 10 取余」，最高位只需整除。坑：别写成 n/1000 + n/100 + n/10 + n%10，高位会重复计入低位。"
 },
 {
-  id: 134, stage: 1, unit: "1.2", topic: "变量与表达式｜交换", type: "编程题",
+  id: 134, stage: 1, unit: "1.2", level: "hard", topic: "变量与表达式｜交换", type: "编程题",
   question: `读入两个整数 a、b，交换它们的值后输出，用一个空格分隔。
 输入格式：例如 3 8
 输出格式：8 3`,
@@ -1419,7 +1428,7 @@ int main() {
   explanation: "必须借第三个临时变量保存原值。坑：直接写 a=b; b=a; 两步做完两个变量都等于原来的 b。"
 },
 {
-  id: 135, stage: 1, unit: "1.2", topic: "数字分解与重组｜逆序", type: "编程题",
+  id: 135, stage: 1, unit: "1.2", level: "hard", topic: "数字分解与重组｜逆序", type: "编程题",
   question: `读入一个三位正整数 n（个位不为 0），输出它的逆序数。
 输入格式：例如 123
 输出格式：321`,
@@ -1445,7 +1454,7 @@ int main() {
   explanation: "数字重组用「乘权相加」：新数 = 个位*100 + 十位*10 + 百位。坑：若允许个位是 0，逆序后的前导 0 会被 %d 吞掉，那时得按位逐个输出。"
 },
 {
-  id: 136, stage: 1, unit: "1.2", topic: "变量与表达式｜运算符", type: "编程题",
+  id: 136, stage: 1, unit: "1.2", level: "hard", topic: "变量与表达式｜运算符", type: "编程题",
   question: `读入整数 x，计算 x² + 2x + 1 并输出。
 输入格式：例如 3
 输出格式：16`,
@@ -1470,7 +1479,7 @@ int main() {
 
 /* ---- 1.3 分支结构 ---- */
 {
-  id: 137, stage: 1, unit: "1.3", topic: "分支结构｜最值", type: "编程题",
+  id: 137, stage: 1, unit: "1.3", level: "hard", topic: "分支结构｜最值", type: "编程题",
   question: `读入三个整数，输出其中最大的一个。
 输入格式：例如 3 9 5
 输出格式：9`,
@@ -1496,7 +1505,7 @@ int main() {
   explanation: "先假设第一个最大，再逐个比较更新。坑：C 不能连写 a > b > c，那样会先算出 0 或 1 再拿去和 c 比。"
 },
 {
-  id: 138, stage: 1, unit: "1.3", topic: "分支结构｜多分支", type: "编程题",
+  id: 138, stage: 1, unit: "1.3", level: "hard", topic: "分支结构｜多分支", type: "编程题",
   question: `读入整数成绩 s（0~100），输出等级：90~100 为 A，80~89 为 B，70~79 为 C，60~69 为 D，其余为 E。
 输入格式：例如 85
 输出格式：B`,
@@ -1525,7 +1534,7 @@ int main() {
   explanation: "else if 链从高分段往下排，每个条件才能只写下界。坑：写成多个独立 if 会让后面的分支覆盖前面已赋好的等级。"
 },
 {
-  id: 139, stage: 1, unit: "1.3", topic: "分支结构｜switch 与闰年", type: "编程题",
+  id: 139, stage: 1, unit: "1.3", level: "hard", topic: "分支结构｜switch 与闰年", type: "编程题",
   question: `读入年份 y 和月份 m，输出该月的天数。
 输入格式：例如 2000 2
 输出格式：29`,
@@ -1558,7 +1567,7 @@ int main() {
   explanation: "多个 case 共用一段处理靠「穿透」实现，但每段末尾必须有 break。坑：闰年是「能被 4 整除且不能被 100 整除，或能被 400 整除」，别只写 y%4==0。"
 },
 {
-  id: 140, stage: 1, unit: "1.3", topic: "分支结构｜复合条件", type: "编程题",
+  id: 140, stage: 1, unit: "1.3", level: "hard", topic: "分支结构｜复合条件", type: "编程题",
   question: `读入三角形三边 a、b、c（整数），若能构成三角形则输出周长，否则输出 NO。
 输入格式：例如 3 4 5
 输出格式：12`,
@@ -1586,7 +1595,7 @@ int main() {
 
 /* ---- 2.1 循环基础 ---- */
 {
-  id: 141, stage: 2, unit: "2.1", topic: "循环｜阶乘", type: "编程题",
+  id: 141, stage: 2, unit: "2.1", level: "hard", topic: "循环｜阶乘", type: "编程题",
   question: `读入正整数 n（n<=12），输出 n 的阶乘。
 输入格式：例如 5
 输出格式：120`,
@@ -1611,7 +1620,7 @@ int main() {
   explanation: "累乘初值必须是 1（累和才是 0）。坑：12! 已经超出 int，要用 long long 并配 %lld 输出。"
 },
 {
-  id: 142, stage: 2, unit: "2.1", topic: "循环｜计数与累加", type: "编程题",
+  id: 142, stage: 2, unit: "2.1", level: "hard", topic: "循环｜计数与累加", type: "编程题",
   question: `读入正整数 n，输出 1~n 中能被 3 整除的数的「个数」和「总和」，用一个空格分隔。
 输入格式：例如 10
 输出格式：3 18（即 3、6、9 共 3 个，和为 18）`,
@@ -1640,7 +1649,7 @@ int main() {
   explanation: "计数器 cnt 和累加器 sum 都要先清零。坑：循环上界是 i<=n，写成 i<n 会漏掉 n 本身；判断整除是 i%3==0 而不是 i/3==0。"
 },
 {
-  id: 143, stage: 2, unit: "2.1", topic: "循环｜因子与输出格式", type: "编程题",
+  id: 143, stage: 2, unit: "2.1", level: "hard", topic: "循环｜因子与输出格式", type: "编程题",
   question: `读入正整数 n，按从小到大的顺序输出 n 的所有正因子，两个数之间一个空格，行末不要空格。
 输入格式：例如 6
 输出格式：1 2 3 6`,
@@ -1673,7 +1682,7 @@ int main() {
   explanation: "行末多余空格在 PTA 会被直接判错，常用 first 标记：第一个数不带前导空格，之后每次输出「空格 + 数」。坑：循环从 1 开始、上界取到 n。"
 },
 {
-  id: 144, stage: 2, unit: "2.1", topic: "循环｜数位拆解", type: "编程题",
+  id: 144, stage: 2, unit: "2.1", level: "hard", topic: "循环｜数位拆解", type: "编程题",
   question: `读入一个正整数 n，用 while 循环逆序输出它的每一位数字，数字之间一个空格，行末不要空格。
 输入格式：例如 1203
 输出格式：3 0 2 1`,
@@ -1708,7 +1717,7 @@ int main() {
 
 /* ---- 2.2 循环控制与嵌套 ---- */
 {
-  id: 145, stage: 2, unit: "2.2", topic: "嵌套循环｜九九表", type: "编程题",
+  id: 145, stage: 2, unit: "2.2", level: "hard", topic: "嵌套循环｜九九表", type: "编程题",
   question: `输出 9×9 乘法表的下三角：第 i 行输出 j=1..i 的「j*i=积」，同一行各项之间用一个制表符分隔，每行末尾换行。
 例如第 2 行是：1*2=2<TAB>2*2=4（<TAB> 表示制表符）。`,
   starter: `#include <stdio.h>
@@ -1734,7 +1743,7 @@ int main() {
   explanation: "下三角的关键是内层上界 j<=i。坑：制表符只在项与项之间输出，行首行尾都不要有；用 j<i 判断，别在每行末尾多打一个。"
 },
 {
-  id: 146, stage: 2, unit: "2.2", topic: "嵌套循环｜图形输出", type: "编程题",
+  id: 146, stage: 2, unit: "2.2", level: "hard", topic: "嵌套循环｜图形输出", type: "编程题",
   question: `读入整数 n（1~10），输出 n 行等腰三角形：第 i 行先输出 n-i 个空格，再输出 2*i-1 个星号，然后换行，行末不要空格。
 例如 n=3 时输出：
   *
@@ -1763,7 +1772,7 @@ int main() {
   explanation: "空格循环和星号循环是并列的两个内层循环，不是互相嵌套。坑：空格要用普通空格字符，用制表符会破坏对齐；星号后面别再补空格。"
 },
 {
-  id: 147, stage: 2, unit: "2.2", topic: "循环控制｜辗转相除", type: "编程题",
+  id: 147, stage: 2, unit: "2.2", level: "hard", topic: "循环控制｜辗转相除", type: "编程题",
   question: `读入两个正整数 a、b，用辗转相除法输出它们的最大公约数。
 输入格式：例如 12 18
 输出格式：6`,
@@ -1791,7 +1800,7 @@ int main() {
   explanation: "每轮把 (a, b) 换成 (b, a%b)，直到 b 为 0，此时 a 就是最大公约数。坑：必须先用 t 暂存 a%b，否则 a 被改掉后 b=t 算出来的值就错了。"
 },
 {
-  id: 148, stage: 2, unit: "2.2", topic: "循环｜递推数列", type: "编程题",
+  id: 148, stage: 2, unit: "2.2", level: "hard", topic: "循环｜递推数列", type: "编程题",
   question: `读入 n（2<=n<=20），输出斐波那契数列前 n 项：1 1 2 3 5 ...，两个数之间一个空格，行末不要空格。
 输入格式：例如 5
 输出格式：1 1 2 3 5`,
@@ -1823,7 +1832,7 @@ int main() {
 
 /* ---- 2.3 数据类型 ---- */
 {
-  id: 149, stage: 2, unit: "2.3", topic: "数据类型｜字符分类", type: "编程题",
+  id: 149, stage: 2, unit: "2.3", level: "hard", topic: "数据类型｜字符分类", type: "编程题",
   question: `读入一个字符 c，若是字母输出 letter，若是数字输出 digit，否则输出 other。
 输入格式：例如 7
 输出格式：digit`,
@@ -1851,7 +1860,7 @@ int main() {
   explanation: "字符常量必须用单引号，区间判断要写成两段 && 再用 || 连起来。坑：C 里不能写 'a' <= c <= 'z'，那会先算出 0/1 再和 'z' 比，恒为真。"
 },
 {
-  id: 150, stage: 2, unit: "2.3", topic: "数据类型｜混合运算", type: "编程题",
+  id: 150, stage: 2, unit: "2.3", level: "hard", topic: "数据类型｜混合运算", type: "编程题",
   question: `读入球半径 r（浮点数），输出球体积 4/3*π*r³，π 取 3.14159，保留 2 位小数。
 输入格式：例如 1
 输出格式：4.19`,
@@ -1874,7 +1883,7 @@ int main() {
   explanation: "必须写 4.0/3，写成 4/3 会先做整数除法得到 1，答案只剩四分之一。坑：r³ 要写 r*r*r，r^3 是按位异或。"
 },
 {
-  id: 151, stage: 2, unit: "2.3", topic: "数据类型｜强制转换", type: "编程题",
+  id: 151, stage: 2, unit: "2.3", level: "hard", topic: "数据类型｜强制转换", type: "编程题",
   question: `读入一个非负浮点数 x，把它四舍五入到整数后输出。
 输入格式：例如 3.6
 输出格式：4（输入 3.4 则输出 3）`,
@@ -1897,7 +1906,7 @@ int main() {
   explanation: "(int)x 是直接截断小数部分，并不是四舍五入；先加 0.5 再强制转换才对。坑：这个技巧只适用于非负数，负数要改成减 0.5。"
 },
 {
-  id: 152, stage: 2, unit: "2.3", topic: "数据类型｜ASCII 运算", type: "编程题",
+  id: 152, stage: 2, unit: "2.3", level: "hard", topic: "数据类型｜ASCII 运算", type: "编程题",
   question: `读入一个字符 c，若是字母输出它在字母表中的序号（A 或 a 输出 1，B 或 b 输出 2……），否则输出 0。
 输入格式：例如 c
 输出格式：3`,
@@ -1925,7 +1934,7 @@ int main() {
 
 /* ---- 2.4 函数 ---- */
 {
-  id: 153, stage: 2, unit: "2.4", topic: "函数｜素数判定", type: "编程题",
+  id: 153, stage: 2, unit: "2.4", level: "hard", topic: "函数｜素数判定", type: "编程题",
   question: `写函数 int isPrime(int n)：n<=1 返回 0，是素数返回 1，否则返回 0。main 读入 n，是素数输出 YES，否则输出 NO。
 输入格式：例如 7
 输出格式：YES`,
@@ -1957,7 +1966,7 @@ int main() {
   explanation: "试除到 i*i<=n 就够了，比 i<n 少一半循环。坑：n<=1 必须单独返回 0；函数的每条执行路径都要有 return，漏掉会返回随机值。"
 },
 {
-  id: 154, stage: 2, unit: "2.4", topic: "函数｜嵌套调用", type: "编程题",
+  id: 154, stage: 2, unit: "2.4", level: "hard", topic: "函数｜嵌套调用", type: "编程题",
   question: `写函数 int gcd(int a, int b) 和 int lcm(int a, int b)。main 读入两个正整数，输出最大公约数和最小公倍数，空格分隔。
 输入格式：例如 12 18
 输出格式：6 36`,
@@ -1995,7 +2004,7 @@ int main() {
   explanation: "lcm = a / gcd(a,b) * b，先除后乘能避免 a*b 先溢出。坑：自定函数要先定义（或写原型）再调用；gcd 必须有返回值，别写成 void。"
 },
 {
-  id: 155, stage: 2, unit: "2.4", topic: "函数｜递归", type: "编程题",
+  id: 155, stage: 2, unit: "2.4", level: "hard", topic: "函数｜递归", type: "编程题",
   question: `写递归函数 void printReverse(int n)，把正整数 n 的各位数字按逆序逐个输出在同一行（数字之间不加空格）；main 读入 n、调用后换行。
 输入格式：例如 1203
 输出格式：3021`,
@@ -2027,7 +2036,7 @@ int main() {
   explanation: "递归体先输出个位，再把 n/10 交给下一层。坑：必须有 n==0 的终止条件；printf 里不要带空格或换行，否则输出格式会散开。"
 },
 {
-  id: 156, stage: 2, unit: "2.4", topic: "函数｜数位求和", type: "编程题",
+  id: 156, stage: 2, unit: "2.4", level: "hard", topic: "函数｜数位求和", type: "编程题",
   question: `写函数 int digitSum(int n)，返回正整数 n 的各位数字之和；main 读入 n 并输出结果。
 输入格式：例如 1234
 输出格式：10`,
@@ -2064,7 +2073,7 @@ int main() {
 
 /* ---- 3.1 数组 ---- */
 {
-  id: 157, stage: 3, unit: "3.1", topic: "数组遍历｜最值", type: "编程题",
+  id: 157, stage: 3, unit: "3.1", level: "hard", topic: "数组遍历｜最值", type: "编程题",
   question: `读入 n（n<=100）和 n 个整数，输出其中的最大值和最小值，用一个空格分隔。
 输入格式：第一行 n，第二行 n 个整数。
 输出格式：例如输入 4 与 -3 -8 -1 -5，输出 -1 -8。`,
@@ -2093,7 +2102,7 @@ int main() {
   explanation: "最大值和最小值的初值都要取 a[0]。坑：把 mx 初始化成 0，遇到全负数就会错；数组下标是 0 到 n-1，不是 1 到 n。"
 },
 {
-  id: 158, stage: 3, unit: "3.1", topic: "数组｜选择排序", type: "编程题",
+  id: 158, stage: 3, unit: "3.1", level: "hard", topic: "数组｜选择排序", type: "编程题",
   question: `读入 n（n<=100）和 n 个整数，用选择排序把它们升序排列后输出，两个数之间一个空格，行末不要空格。
 输入格式：第一行 n，第二行 n 个整数。
 输出格式：例如输入 3 与 3 1 2，输出 1 2 3。`,
@@ -2130,7 +2139,7 @@ int main() {
   explanation: "外层只跑到 n-2，内层从 i+1 开始找最小下标，最后交换一次。坑：交换三行要用临时变量 t；输出空格靠 i>0 控制，别写成行末补空格。"
 },
 {
-  id: 159, stage: 3, unit: "3.1", topic: "数组｜循环右移", type: "编程题",
+  id: 159, stage: 3, unit: "3.1", level: "hard", topic: "数组｜循环右移", type: "编程题",
   question: `读入 n 和 n 个整数，把它们循环右移一位（原来的最后一个数移到最前面）后输出，两个数之间一个空格，行末不要空格。
 输入格式：第一行 n，第二行 n 个整数。
 输出格式：例如输入 4 与 1 2 3 4，输出 4 1 2 3。`,
@@ -2160,7 +2169,7 @@ int main() {
   explanation: "先保存最后一个元素，再从后往前逐个右移。坑：从前往后搬会先覆盖掉还没搬的值；右移后的第一个位置要用保存的 t 补上。"
 },
 {
-  id: 160, stage: 3, unit: "3.1", topic: "数组｜二维数组", type: "编程题",
+  id: 160, stage: 3, unit: "3.1", level: "hard", topic: "数组｜二维数组", type: "编程题",
   question: `读入一个 3×3 的整数矩阵，输出主对角线元素之和。
 输入格式：3 行，每行 3 个整数。
 输出格式：例如对角线为 1、5、9 时输出 15。`,
@@ -2188,7 +2197,7 @@ int main() {
 
 /* ---- 3.2 指针 ---- */
 {
-  id: 161, stage: 3, unit: "3.2", topic: "指针｜传址调用", type: "编程题",
+  id: 161, stage: 3, unit: "3.2", level: "hard", topic: "指针｜传址调用", type: "编程题",
   question: `写函数 void split(double x, int *ip, double *fp)，把 x 拆成整数部分和小数部分，分别通过指针带回。main 读入一个非负浮点数，输出整数部分和小数部分（保留 2 位），空格分隔。
 输入格式：例如 3.14
 输出格式：3 0.14`,
@@ -2220,7 +2229,7 @@ int main() {
   explanation: "函数要输出多个结果，就用指针参数带回：对 *ip、*fp 赋值。坑：写成 ip = ... 只是改了局部指针副本；调用时实参要传 &i、&f。"
 },
 {
-  id: 162, stage: 3, unit: "3.2", topic: "指针｜数组作参数", type: "编程题",
+  id: 162, stage: 3, unit: "3.2", level: "hard", topic: "指针｜数组作参数", type: "编程题",
   question: `写函数 void findMaxMin(int *a, int n, int *pmax, int *pmin)，用指针参数带回数组的最大值和最小值。main 读入 n 和 n 个整数，输出最大值和最小值，空格分隔。
 输入格式：第一行 n，第二行 n 个整数。`,
   starter: `#include <stdio.h>
@@ -2254,7 +2263,7 @@ int main() {
   explanation: "函数参数写成 int *a 或 int a[] 完全等价，传进去的是数组首地址。坑：给 *pmax 赋值别写成 pmax = &a[i]，那只是让局部指针改了指向。"
 },
 {
-  id: 163, stage: 3, unit: "3.2", topic: "指针｜原地逆序", type: "编程题",
+  id: 163, stage: 3, unit: "3.2", level: "hard", topic: "指针｜原地逆序", type: "编程题",
   question: `读入 n 和 n 个整数，用两个指针把数组原地逆序后输出，两个数之间一个空格，行末不要空格。
 输入格式：第一行 n，第二行 n 个整数。
 输出格式：例如输入 4 与 1 2 3 4，输出 4 3 2 1。`,
@@ -2289,7 +2298,7 @@ int main() {
   explanation: "两个指针从首尾相向移动，每次交换 *p 和 *q。坑：结束条件必须是 p<q；偶数长度时写 p!=q 会让两指针交叉后再换回去，等于没逆序。"
 },
 {
-  id: 164, stage: 3, unit: "3.2", topic: "指针｜字符串复制", type: "编程题",
+  id: 164, stage: 3, unit: "3.2", level: "hard", topic: "指针｜字符串复制", type: "编程题",
   question: `写函数 void mystrcpy(char *dst, char *src)，用指针逐字符把 src 复制到 dst（包括结束符）。main 读入一个不含空格的字符串，复制后输出副本。
 输入格式：例如 hello
 输出格式：hello`,
@@ -2326,7 +2335,7 @@ int main() {
 
 /* ---- 3.3 字符串 ---- */
 {
-  id: 165, stage: 3, unit: "3.3", topic: "字符串遍历｜大小写", type: "编程题",
+  id: 165, stage: 3, unit: "3.3", level: "hard", topic: "字符串遍历｜大小写", type: "编程题",
   question: `读入一个不含空格的字符串，把其中所有小写字母转成大写后输出，其它字符保持不变。
 输入格式：例如 Ab3c
 输出格式：AB3C`,
@@ -2352,7 +2361,7 @@ int main() {
   explanation: "遍历条件用 s[i] != '\\0'，转换是小写减 32。坑：只对小写区间做减法，把数字、标点也减 32 会变成乱码；用 sizeof(s) 会把结束符一起算进去。"
 },
 {
-  id: 166, stage: 3, unit: "3.3", topic: "字符串｜回文判断", type: "编程题",
+  id: 166, stage: 3, unit: "3.3", level: "hard", topic: "字符串｜回文判断", type: "编程题",
   question: `读入一个不含空格的字符串，是回文（正读反读相同）输出 YES，否则输出 NO。
 输入格式：例如 level
 输出格式：YES`,
@@ -2381,7 +2390,7 @@ int main() {
   explanation: "左右两个下标同时向中间移动，只要有一对不等就不是回文。坑：右端下标是 strlen(s)-1，不是 strlen(s)；循环到 i<j 即可，不必比较中间那个字符。"
 },
 {
-  id: 167, stage: 3, unit: "3.3", topic: "字符串｜字符统计", type: "编程题",
+  id: 167, stage: 3, unit: "3.3", level: "hard", topic: "字符串｜字符统计", type: "编程题",
   question: `读入一个不含空格的字符串，统计其中元音字母（a e i o u，大小写都算）的个数并输出。
 输入格式：例如 Hello
 输出格式：2`,
@@ -2410,7 +2419,7 @@ int main() {
   explanation: "每个比较都要写完整的 c == 'x'。坑：写成 c == 'a' || 'e' || 'i' 时，后面的字符常量非 0，整个条件恒为真，计数会变成字符串长度。"
 },
 {
-  id: 168, stage: 3, unit: "3.3", topic: "字符串｜行输入与过滤", type: "编程题",
+  id: 168, stage: 3, unit: "3.3", level: "hard", topic: "字符串｜行输入与过滤", type: "编程题",
   question: `读入一整行可能含空格的字符串（用 fgets），删掉其中所有空格后输出（换行也要去掉）。
 输入格式：例如 a b  c
 输出格式：abc`,
@@ -2440,7 +2449,7 @@ int main() {
 
 /* ---- 4.1 结构类型 ---- */
 {
-  id: 169, stage: 4, unit: "4.1", topic: "结构体｜两点距离", type: "编程题",
+  id: 169, stage: 4, unit: "4.1", level: "hard", topic: "结构体｜两点距离", type: "编程题",
   question: `定义 struct Point { double x, y; }，写函数 double dist(struct Point a, struct Point b) 求两点距离。main 读入两个点的坐标，输出距离，保留 2 位小数。
 输入格式：一行四个浮点数 x1 y1 x2 y2。
 输出格式：例如输入 0 0 3 4，输出 5.00。`,
@@ -2474,7 +2483,7 @@ int main() {
   explanation: "结构体可以按值传参，函数内用 . 访问成员。坑：sqrt 需要 math.h；距离是 sqrt(dx²+dy²)，别写成 (dx+dy)² 或漏掉开方。"
 },
 {
-  id: 170, stage: 4, unit: "4.1", topic: "结构体数组｜排序", type: "编程题",
+  id: 170, stage: 4, unit: "4.1", level: "hard", topic: "结构体数组｜排序", type: "编程题",
   question: `定义 struct Student { char name[20]; int score; }。读入 n（n<=50）个学生的姓名和成绩，按成绩从高到低输出全部学生，每行「姓名 成绩」。
 输入格式：第一行 n，之后 n 行每行一个姓名和一个整数成绩。
 输出格式：成绩降序，每行一个学生。`,
@@ -2512,7 +2521,7 @@ int main() {
   explanation: "结构体变量可以整体赋值，交换时所有成员一次性搬完。坑：只交换 score 会让姓名和分数错位；scanf 读 name 是数组名不加 &，读 score 要加 &。"
 },
 {
-  id: 171, stage: 4, unit: "4.1", topic: "结构类型｜typedef", type: "编程题",
+  id: 171, stage: 4, unit: "4.1", level: "hard", topic: "结构类型｜typedef", type: "编程题",
   question: `用 typedef 定义复数类型 Complex，含 double 成员 real 和 imag。读入两个复数的实部和虚部，输出它们的和，格式「实部+虚部i」，均保留 1 位小数。
 输入格式：一行四个浮点数 a b c d，表示 (a+bi) 与 (c+di)。
 输出格式：例如输入 1 2 3 4，输出 4.0+6.0i。`,
@@ -2539,7 +2548,7 @@ int main() {
   explanation: "typedef 之后直接用 Complex 声明变量，不必再写 struct。坑：实部与虚部分别相加；scanf 读 double 用 %lf，每个成员都要取地址。"
 },
 {
-  id: 172, stage: 4, unit: "4.1", topic: "结构体｜日期比较", type: "编程题",
+  id: 172, stage: 4, unit: "4.1", level: "hard", topic: "结构体｜日期比较", type: "编程题",
   question: `定义 struct Date { int y, m, d; }，写函数 struct Date earlier(struct Date a, struct Date b) 返回较早的日期。main 读入两个日期，输出较早的那个，格式 y-m-d。
 输入格式：两行，每行三个整数 y m d。
 输出格式：例如输入 2024 1 1 与 2023 12 31，输出 2023-12-31。`,
@@ -2576,7 +2585,7 @@ int main() {
 
 /* ---- 4.2 程序结构 ---- */
 {
-  id: 173, stage: 4, unit: "4.2", topic: "程序结构｜带参宏", type: "编程题",
+  id: 173, stage: 4, unit: "4.2", level: "hard", topic: "程序结构｜带参宏", type: "编程题",
   question: `定义带参数的宏 MAX(a, b)，读入三个整数，用嵌套的 MAX 调用输出最大值。
 输入格式：例如 3 9 5
 输出格式：9`,
@@ -2603,7 +2612,7 @@ int main() {
   explanation: "宏是纯文本替换，参数和整个表达式都要加括号。坑：#define SQR(x) x*x 遇 SQR(2+3) 会展开成 2+3*2+3=11；宏定义末尾不要写分号。"
 },
 {
-  id: 174, stage: 4, unit: "4.2", topic: "程序结构｜作用域", type: "编程题",
+  id: 174, stage: 4, unit: "4.2", level: "hard", topic: "程序结构｜作用域", type: "编程题",
   question: `定义全局变量 int g = 10，写函数 void f() 在里面定义同名局部变量 int g = 1 并将它加 1 后输出。main 先输出全局 g，调用 f，再输出全局 g，共三行。
 本题无输入。
 输出格式：三行依次是 10、2、10。`,
@@ -2636,7 +2645,7 @@ int main() {
   explanation: "函数内的同名局部变量会遮蔽全局变量，改它不会影响全局 g。坑：想在函数里修改全局，就不能再声明同名局部变量；全局变量虽默认初始化为 0，显式赋值更清楚。"
 },
 {
-  id: 175, stage: 4, unit: "4.2", topic: "程序结构｜宏与类型参数", type: "编程题",
+  id: 175, stage: 4, unit: "4.2", level: "hard", topic: "程序结构｜宏与类型参数", type: "编程题",
   question: `定义宏 SWAP(t, a, b)，用临时变量交换两个同类型变量（t 是类型）。main 读入两个整数，用 SWAP(int, x, y) 交换后输出，空格分隔。
 输入格式：例如 3 8
 输出格式：8 3`,
@@ -2664,7 +2673,7 @@ int main() {
   explanation: "把类型也做成宏参数，同一个宏就能用于 int、double。坑：宏里有多条语句必须用大括号（更严谨用 do{...}while(0)）包住，否则放进 if 里只会执行第一条。"
 },
 {
-  id: 176, stage: 4, unit: "4.2", topic: "程序结构｜条件编译", type: "编程题",
+  id: 176, stage: 4, unit: "4.2", level: "hard", topic: "程序结构｜条件编译", type: "编程题",
   question: `用条件编译控制调试输出：读入两个整数输出它们的和；仅当定义了 DEBUG 时，才额外输出一行调试信息。本题按「未定义 DEBUG」提交，输出只有和。
 输入格式：例如 3 5
 输出格式：8`,
@@ -2694,7 +2703,7 @@ int main() {
 
 /* ---- 4.3 链表 ---- */
 {
-  id: 177, stage: 4, unit: "4.3", topic: "链表｜头插法", type: "编程题",
+  id: 177, stage: 4, unit: "4.3", level: "hard", topic: "链表｜头插法", type: "编程题",
   question: `定义单链表节点 struct Node { int data; struct Node *next; }。读入 n 和 n 个整数，用头插法建立链表，再遍历输出（顺序会与输入相反），两个数之间一个空格，行末不要空格。
 输入格式：第一行 n，第二行 n 个整数。
 输出格式：例如输入 3 与 1 2 3，输出 3 2 1。`,
@@ -2735,7 +2744,7 @@ int main() {
   explanation: "头插法每轮让新节点指向原来的 head，再把 head 更新为新节点，所以输出是逆序。坑：必须先连 p->next 再改 head，顺序颠倒会丢掉整条链；head 初值要置 NULL。"
 },
 {
-  id: 178, stage: 4, unit: "4.3", topic: "链表｜查找节点", type: "编程题",
+  id: 178, stage: 4, unit: "4.3", level: "hard", topic: "链表｜查找节点", type: "编程题",
   question: `写函数 struct Node* find(struct Node *head, int x)，返回第一个 data 等于 x 的节点指针，找不到返回 NULL。main 建立 data 为 10、20、30 的三个节点并相连，读入 x，找到输出 YES，否则输出 NO。
 输入格式：例如 20
 输出格式：YES`,
@@ -2772,7 +2781,7 @@ int main() {
   explanation: "遍历靠 p = p->next，条件 p != NULL 保证空链表也安全。坑：空表时 head 为 NULL，直接取 p->data 会崩；找到就要 return，别让循环跑到最后返回 NULL。"
 },
 {
-  id: 179, stage: 4, unit: "4.3", topic: "链表｜尾插法", type: "编程题",
+  id: 179, stage: 4, unit: "4.3", level: "hard", topic: "链表｜尾插法", type: "编程题",
   question: `写函数 struct Node* append(struct Node *head, int x)，用 malloc 在链表尾部追加一个节点并返回新的头指针。main 读入 n 个整数依次追加，再遍历输出（顺序与输入相同），两个数之间一个空格，行末不要空格。
 输入格式：第一行 n，第二行 n 个整数。`,
   starter: `#include <stdio.h>
@@ -2820,7 +2829,7 @@ int main() {
   explanation: "空链表时新节点本身就是头，必须把它返回出去。坑：函数里只改形参 head，调用方拿不到新头；所以要 head = append(head, x)，或者改用二级指针 struct Node **。"
 },
 {
-  id: 180, stage: 4, unit: "4.3", topic: "链表｜释放内存", type: "编程题",
+  id: 180, stage: 4, unit: "4.3", level: "hard", topic: "链表｜释放内存", type: "编程题",
   question: `写函数 void freeList(struct Node *head) 释放整条链表的全部节点。main 用 malloc 建立 3 个节点并连成链，调用 freeList 后输出 done。
 本题无输入。
 输出格式：done`,
@@ -2865,7 +2874,7 @@ int main() {
 
 /* ---- 4.4 文件 ---- */
 {
-  id: 181, stage: 4, unit: "4.4", topic: "文件｜EOF 与平均值", type: "编程题",
+  id: 181, stage: 4, unit: "4.4", level: "hard", topic: "文件｜EOF 与平均值", type: "编程题",
   question: `in.txt 里有若干个整数（个数未知，以空白分隔）。打开文件，输出它们的和与平均值（保留 2 位），空格分隔；文件打不开则输出 cannot open。
 输入格式：数据来自 in.txt，不从键盘读。
 输出格式：例如文件内容为 1 2 3 4，输出 10 2.50。`,
@@ -2897,7 +2906,7 @@ int main() {
   explanation: "循环条件用 fscanf(...) == 1，读不到整数（含 EOF）就自然结束。坑：用 while(!feof(fp)) 会让最后一个数被多处理一次；fopen 之后必须判 NULL。"
 },
 {
-  id: 182, stage: 4, unit: "4.4", topic: "文件｜写模式与读回", type: "编程题",
+  id: 182, stage: 4, unit: "4.4", level: "hard", topic: "文件｜写模式与读回", type: "编程题",
   question: `把 1~10 的平方写入 out.txt（每行一个数），然后重新以只读方式打开读回，输出这 10 个数的和。
 输入格式：无键盘输入。
 输出格式：385`,
@@ -2925,7 +2934,7 @@ int main() {
   explanation: "写完必须 fclose，再以 \"r\" 重新打开读回，同一个 FILE* 不能边写边读。坑：\"w\" 会清空文件原有内容，\"a\" 才是追加。"
 },
 {
-  id: 183, stage: 4, unit: "4.4", topic: "文件｜fgets 逐行读", type: "编程题",
+  id: 183, stage: 4, unit: "4.4", level: "hard", topic: "文件｜fgets 逐行读", type: "编程题",
   question: `打开 in.txt，用 fgets 逐行读入并统计行数，输出行数；文件打不开则输出 0。
 输入格式：数据来自 in.txt。
 输出格式：一个整数，表示行数。`,
@@ -2955,7 +2964,7 @@ int main() {
   explanation: "fgets 返回 NULL 就表示读到文件末尾或出错。坑：fgets 会把行尾换行一并读进缓冲区；最后一行即使没有换行符，也算作一行。"
 },
 {
-  id: 184, stage: 4, unit: "4.4", topic: "文件｜追加模式", type: "编程题",
+  id: 184, stage: 4, unit: "4.4", level: "hard", topic: "文件｜追加模式", type: "编程题",
   question: `先以 \"w\" 建立 log.txt 写入一行 first，再以 \"a\" 追加一行 second，最后以 \"r\" 打开读回并原样输出全部内容。
 输入格式：无键盘输入。
 输出格式：两行，依次是 first 和 second。`,
@@ -2983,7 +2992,753 @@ int main() {
 }`,
   checks: ["fopen(", '"w"', '"a"', '"r"', "fprintf(", "fgets(", "printf("],
   explanation: "\"a\" 是追加模式：写在文件末尾、文件不存在就创建，不会覆盖已有内容。坑：每次换读写模式都要 fclose 再 fopen；用 \"w\" 去追加会把前面写的内容清空。"
+},
+
+/* ---------------- 入门编程题（低难度，每小节 2 题，共 28 题，id 301–328）----
+ * 面向刚学完当周内容的同学：不读输入或只读 1~2 个数，单条语句 / 单层循环即可完成。
+ * level = "easy"；起手代码给到接近填空，参考实现很短，检查点只查最关键的 2~3 处。
+ * --------------------------------------------------------------------- */
+
+/* ---- 1.1 程序结构与输入输出 ---- */
+{
+  id: 301, stage: 1, unit: "1.1", level: "easy", topic: "入门｜第一行输出", type: "编程题",
+  question: `不读任何输入，直接输出一行：Hello C
+输出格式：Hello C 后面要换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    /* 在这里写一行 printf */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    printf("Hello C\\n");
+    return 0;
+}`,
+  checks: ["printf(", "HelloC", "return0;"],
+  explanation: "字符串末尾写 \\n 才换行，PTA 按字符比对输出，漏掉换行会判格式错误。坑：#include 那行末尾不要加分号。"
+},
+{
+  id: 302, stage: 1, unit: "1.1", level: "easy", topic: "入门｜读入再输出", type: "编程题",
+  question: `读入一个整数 n，原样输出这个数。
+输入格式：一个整数。输出格式：一个整数，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n;
+    /* 读入 n，再输出 n */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    printf("%d\\n", n);
+    return 0;
+}`,
+  checks: ["scanf(", "&n", "printf("],
+  explanation: "scanf 的变量前要加 &，printf 不用。坑：scanf 格式串里别顺手加 \\n，会让程序多等一次输入。"
+},
+
+/* ---- 1.2 变量与表达式 ---- */
+{
+  id: 303, stage: 1, unit: "1.2", level: "easy", topic: "入门｜变量与算术", type: "编程题",
+  question: `读入整数 x，输出 x 的 2 倍。
+输入格式：一个整数。输出格式：一个整数，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int x;
+    scanf("%d", &x);
+    /* 输出 x * 2 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int x;
+    scanf("%d", &x);
+    printf("%d\\n", x * 2);
+    return 0;
+}`,
+  checks: ["printf(", "x*2"],
+  explanation: "C 里乘号是 *，不是 × 也不是 ^。坑：^ 是按位异或，写 x ^ 2 结果完全不对。"
+},
+{
+  id: 304, stage: 1, unit: "1.2", level: "easy", topic: "入门｜矩形面积", type: "编程题",
+  question: `读入两个整数 a、b（长和宽），输出矩形面积 a*b。
+输入格式：一行两个整数，空格分隔。输出格式：一个整数，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int a, b;
+    /* 读入 a、b，输出 a*b */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\\n", a * b);
+    return 0;
+}`,
+  checks: ["scanf(", "&a", "&b", "a*b"],
+  explanation: "两个变量都要声明、都要加 &。坑：int 存不下很大的乘积时先别急着换类型，入门题数据都很小。"
+},
+
+/* ---- 1.3 分支结构 ---- */
+{
+  id: 305, stage: 1, unit: "1.3", level: "easy", topic: "入门｜奇偶判断", type: "编程题",
+  question: `读入整数 n，若是偶数输出 even，否则输出 odd，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    /* 用 if-else 判断 n 能不能被 2 整除 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    if (n % 2 == 0) printf("even\\n");
+    else printf("odd\\n");
+    return 0;
+}`,
+  checks: ["if(", "%2==0", "else"],
+  explanation: "判断相等要写 ==，写成 = 就变成赋值且恒为真。坑：负数取余在 C 里可能是 -1，但判断是否为 0 不受影响。"
+},
+{
+  id: 306, stage: 1, unit: "1.3", level: "easy", topic: "入门｜两个数取大", type: "编程题",
+  question: `读入两个整数 a、b，输出其中较大的那个，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    /* 用 if-else 输出较大值 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    if (a > b) printf("%d\\n", a);
+    else printf("%d\\n", b);
+    return 0;
+}`,
+  checks: ["if(", "a>b", "else"],
+  explanation: "相等时走 else 输出 b，值一样所以没问题。坑：别把两个 printf 都写成 a。"
+},
+
+/* ---- 2.1 循环基础 ---- */
+{
+  id: 307, stage: 2, unit: "2.1", level: "easy", topic: "入门｜for 输出数列", type: "编程题",
+  question: `读入整数 n（1~10），用 for 循环依次输出 1 到 n，每个数一行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n, i;
+    scanf("%d", &n);
+    /* 用 for 从 1 输出到 n */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n, i;
+    scanf("%d", &n);
+    for (i = 1; i <= n; i++) {
+        printf("%d\\n", i);
+    }
+    return 0;
+}`,
+  checks: ["for(", "i<=n", "i++"],
+  explanation: "循环条件是 i <= n，写成 i < n 会少输出最后一个。坑：printf 里的 \\n 别忘，否则全挤在一行。"
+},
+{
+  id: 308, stage: 2, unit: "2.1", level: "easy", topic: "入门｜for 累加求和", type: "编程题",
+  question: `读入整数 n（1~100），用 for 循环求 1+2+...+n 并输出，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n, i, sum = 0;
+    scanf("%d", &n);
+    /* 用 for 把 i 累加到 sum */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n, i, sum = 0;
+    scanf("%d", &n);
+    for (i = 1; i <= n; i++) {
+        sum += i;
+    }
+    printf("%d\\n", sum);
+    return 0;
+}`,
+  checks: ["sum=0", "for(", "sum+=i"],
+  explanation: "sum 一定要先初始化为 0，否则初值是随机的。坑：把 printf 写在循环里会输出每一次的中间和。"
+},
+
+/* ---- 2.2 循环控制与嵌套 ---- */
+{
+  id: 309, stage: 2, unit: "2.2", level: "easy", topic: "入门｜while 求和", type: "编程题",
+  question: `读入整数 n（1~100），改用 while 循环求 1+2+...+n 并输出，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n, i = 1, sum = 0;
+    scanf("%d", &n);
+    /* 用 while 把 i 累加到 sum */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n, i = 1, sum = 0;
+    scanf("%d", &n);
+    while (i <= n) {
+        sum += i;
+        i++;
+    }
+    printf("%d\\n", sum);
+    return 0;
+}`,
+  checks: ["while(", "sum+=i", "i++"],
+  explanation: "while 不会自动帮 i 加 1，循环体里漏写 i++ 就是死循环。坑：i 从 1 开始，从 0 开始会多算一次 0。"
+},
+{
+  id: 310, stage: 2, unit: "2.2", level: "easy", topic: "入门｜输出一行星号", type: "编程题",
+  question: `读入整数 n（1~20），输出连续 n 个星号，最后换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int n, i;
+    scanf("%d", &n);
+    /* 循环输出 n 个星号 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int n, i;
+    scanf("%d", &n);
+    for (i = 0; i < n; i++) {
+        printf("*");
+    }
+    printf("\\n");
+    return 0;
+}`,
+  checks: ["for(", "i<n", "printf("],
+  explanation: "循环里输出单个星号不要带换行，循环结束后再补一个换行。坑：n 个星号对应 i 从 0 到 n-1，写成 i <= n 会多一个。"
+},
+
+/* ---- 2.3 数据类型 ---- */
+{
+  id: 311, stage: 2, unit: "2.3", level: "easy", topic: "入门｜浮点输出", type: "编程题",
+  question: `不读输入。定义 double x = 3.5，用 %.1f 输出 x 并换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    double x = 3.5;
+    /* 用 %.1f 输出 x */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    double x = 3.5;
+    printf("%.1f\\n", x);
+    return 0;
+}`,
+  checks: ["doublex=3.5", "%.1f"],
+  explanation: "double 用 %f 系列输出，%.1f 表示保留一位小数。坑：用 %d 输出 double 会得到毫无意义的数。"
+},
+{
+  id: 312, stage: 2, unit: "2.3", level: "easy", topic: "入门｜字符与 ASCII", type: "编程题",
+  question: `读入一个字符 c，输出它的 ASCII 码（整数），末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    char c;
+    scanf("%c", &c);
+    /* 用 %d 输出 c */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    char c;
+    scanf("%c", &c);
+    printf("%d\\n", c);
+    return 0;
+}`,
+  checks: ["scanf(", "%c", "%d"],
+  explanation: "char 本质是小整数，用 %d 就能看到 ASCII 码，用 %c 才是字符本身。坑：%c 不会跳过空格，输入里的空白也会被读进来。"
+},
+
+/* ---- 2.4 函数 ---- */
+{
+  id: 313, stage: 2, unit: "2.4", level: "easy", topic: "入门｜写一个函数", type: "编程题",
+  question: `不读输入。写一个函数 int sq(int x) 返回 x*x，在 main 中输出 sq(5) 并换行。`,
+  starter: `#include <stdio.h>
+
+/* 在这里写 sq 函数 */
+
+int main() {
+    printf("%d\\n", sq(5));
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int sq(int x) {
+    return x * x;
 }
+
+int main() {
+    printf("%d\\n", sq(5));
+    return 0;
+}`,
+  checks: ["intsq(intx)", "returnx*x", "sq(5)"],
+  explanation: "函数要先定义（或先声明）再调用，返回值类型要和 return 的值一致。坑：写 x^2 不是平方。"
+},
+{
+  id: 314, stage: 2, unit: "2.4", level: "easy", topic: "入门｜函数调用", type: "编程题",
+  question: `写一个函数 int add(int a, int b) 返回两数之和；main 读入两个整数并输出 add(a,b)，末尾换行。`,
+  starter: `#include <stdio.h>
+
+/* 在这里写 add 函数 */
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    /* 输出 add(a, b) */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\\n", add(a, b));
+    return 0;
+}`,
+  checks: ["intadd(inta,intb)", "returna+b", "add(a,b)"],
+  explanation: "调用时传的是值，形参名字和 main 里的变量同名也不冲突。坑：别写成 add(int a, int b) 去调用，调用时只写变量名。"
+},
+
+/* ---- 3.1 数组 ---- */
+{
+  id: 315, stage: 3, unit: "3.1", level: "easy", topic: "入门｜数组遍历", type: "编程题",
+  question: `不读输入。已有数组 int a[5] = {1,2,3,4,5};，用 for 依次输出每个元素，每个一行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int a[5] = {1, 2, 3, 4, 5};
+    int i;
+    /* 用 for 输出 a[0] 到 a[4] */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int a[5] = {1, 2, 3, 4, 5};
+    int i;
+    for (i = 0; i < 5; i++) {
+        printf("%d\\n", a[i]);
+    }
+    return 0;
+}`,
+  checks: ["for(", "i<5", "a[i]"],
+  explanation: "下标从 0 开始，5 个元素是 a[0]~a[4]。坑：写 i <= 5 会访问 a[5]，属于数组越界。"
+},
+{
+  id: 316, stage: 3, unit: "3.1", level: "easy", topic: "入门｜数组求和", type: "编程题",
+  question: `不读输入。已有数组 int a[5] = {1,2,3,4,5};，求所有元素之和并输出，末尾换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int a[5] = {1, 2, 3, 4, 5};
+    int i, sum = 0;
+    /* 遍历数组累加 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int a[5] = {1, 2, 3, 4, 5};
+    int i, sum = 0;
+    for (i = 0; i < 5; i++) {
+        sum += a[i];
+    }
+    printf("%d\\n", sum);
+    return 0;
+}`,
+  checks: ["sum=0", "sum+=a[i]", "i<5"],
+  explanation: "数组求和就是遍历 + 累加。坑：数组名 a 单独用不代表全部元素，必须写 a[i] 逐个取。"
+},
+
+/* ---- 3.2 指针 ---- */
+{
+  id: 317, stage: 3, unit: "3.2", level: "easy", topic: "入门｜指针取值", type: "编程题",
+  question: `不读输入。定义 int x = 10; int *p = &x;，用 *p 输出 10 并换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int *p = &x;
+    /* 用 *p 输出 x 的值 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int *p = &x;
+    printf("%d\\n", *p);
+    return 0;
+}`,
+  checks: ["int*p=&x", "*p"],
+  explanation: "&x 是取地址，*p 是取 p 指向的那个值。坑：printf 里写 p（不带 *）输出的是地址，不是 10。"
+},
+{
+  id: 318, stage: 3, unit: "3.2", level: "easy", topic: "入门｜通过指针改值", type: "编程题",
+  question: `不读输入。定义 int x = 10; int *p = &x;，通过 *p 把 x 改成 20 后输出 x 并换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int *p = &x;
+    /* 通过 *p 把值改成 20 */
+
+    printf("%d\\n", x);
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int *p = &x;
+    *p = 20;
+    printf("%d\\n", x);
+    return 0;
+}`,
+  checks: ["int*p=&x", "*p=20"],
+  explanation: "*p = 20 改的是 p 指向的那块内存，所以 x 也变了。坑：写成 p = 20 是给指针本身乱赋地址，完全不是一回事。"
+},
+
+/* ---- 3.3 字符串 ---- */
+{
+  id: 319, stage: 3, unit: "3.3", level: "easy", topic: "入门｜strlen", type: "编程题",
+  question: `不读输入。用 strlen 输出字符串常量 abc 的长度（应为 3），末尾换行。`,
+  starter: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    /* 输出 strlen("abc") */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    printf("%d\\n", strlen("abc"));
+    return 0;
+}`,
+  checks: ["#include<string.h>", "strlen(", "printf("],
+  explanation: "用 strlen 要包含 string.h，它数到结束符为止、不算结束符。坑：sizeof 数组算的是整个数组大小，和 strlen 不是一回事。"
+},
+{
+  id: 320, stage: 3, unit: "3.3", level: "easy", topic: "入门｜逐字符输出", type: "编程题",
+  question: `不读输入。已有 char s[] = "abc";，用循环把每个字符单独输出（每个一行）。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    char s[] = "abc";
+    int i;
+    /* 用循环逐个输出 s[i]，直到结束符 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    char s[] = "abc";
+    int i;
+    for (i = 0; s[i] != '\\0'; i++) {
+        printf("%c\\n", s[i]);
+    }
+    return 0;
+}`,
+  checks: ["s[i]!='\\0'", "%c", "s[i]"],
+  explanation: "字符串末尾自动有一个结束符 '\\0'，循环条件用它来判断结尾。坑：写 s[i] != 0 也能过，但别把字符 0 和结束符搞混。"
+},
+
+/* ---- 4.1 结构类型 ---- */
+{
+  id: 321, stage: 4, unit: "4.1", level: "easy", topic: "入门｜结构体成员", type: "编程题",
+  question: `不读输入。定义结构体 Stu 含 int age，创建变量并令 age = 18，输出 age 并换行。`,
+  starter: `#include <stdio.h>
+
+struct Stu {
+    int age;
+};
+
+int main() {
+    struct Stu s;
+    /* 给 s.age 赋值 18 再输出 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+struct Stu {
+    int age;
+};
+
+int main() {
+    struct Stu s;
+    s.age = 18;
+    printf("%d\\n", s.age);
+    return 0;
+}`,
+  checks: ["structStu", "s.age=18", "s.age"],
+  explanation: "结构体定义末尾的分号不能省，访问成员用点号。坑：只写 Stu s 而没写 struct（或没有 typedef）会编译不过。"
+},
+{
+  id: 322, stage: 4, unit: "4.1", level: "easy", topic: "入门｜两个成员", type: "编程题",
+  question: `不读输入。定义结构体 Point 含 int x, y，令 x=3、y=4，输出 x+y 并换行。`,
+  starter: `#include <stdio.h>
+
+struct Point {
+    int x, y;
+};
+
+int main() {
+    struct Point p;
+    /* 给两个成员赋值，输出 x+y */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+struct Point {
+    int x, y;
+};
+
+int main() {
+    struct Point p;
+    p.x = 3;
+    p.y = 4;
+    printf("%d\\n", p.x + p.y);
+    return 0;
+}`,
+  checks: ["structPoint", "p.x=3", "p.y=4", "p.x+p.y"],
+  explanation: "多个成员逐个赋值，输出时用点号取出来再运算。坑：别把结构体变量名和成员名写反。"
+},
+
+/* ---- 4.2 程序结构 ---- */
+{
+  id: 323, stage: 4, unit: "4.2", level: "easy", topic: "入门｜宏常量", type: "编程题",
+  question: `不读输入。用 #define 定义常量 N 为 5，输出 N 并换行。`,
+  starter: `#include <stdio.h>
+
+/* 在这里写 #define */
+
+int main() {
+    printf("%d\\n", N);
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+#define N 5
+
+int main() {
+    printf("%d\\n", N);
+    return 0;
+}`,
+  checks: ["#defineN5", "printf("],
+  explanation: "宏是预处理时的文本替换，#define 行尾不写分号。坑：写成 #define N 5; 会把分号一起替换进去。"
+},
+{
+  id: 324, stage: 4, unit: "4.2", level: "easy", topic: "入门｜两个函数配合", type: "编程题",
+  question: `不读输入。写 int twice(int x) 返回 2*x，再写 void show(int v) 输出 v 并换行；main 里调用 show(twice(7))。`,
+  starter: `#include <stdio.h>
+
+/* 在这里写 twice 和 show 两个函数 */
+
+int main() {
+    show(twice(7));
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int twice(int x) {
+    return 2 * x;
+}
+
+void show(int v) {
+    printf("%d\\n", v);
+}
+
+int main() {
+    show(twice(7));
+    return 0;
+}`,
+  checks: ["inttwice(intx)", "voidshow(intv)", "show(twice(7))"],
+  explanation: "一个函数的返回值可以直接当另一个函数的参数。坑：void 函数不要写 return 一个值。"
+},
+
+/* ---- 4.3 链表 ---- */
+{
+  id: 325, stage: 4, unit: "4.3", level: "easy", topic: "入门｜一个节点", type: "编程题",
+  question: `不读输入。定义链表节点结构体（int data; 指向同类型的 next），只创建一个节点，令 data=9、next=NULL，输出 data 并换行。`,
+  starter: `#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+int main() {
+    struct Node a;
+    /* 给 a.data 和 a.next 赋值，再输出 data */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+int main() {
+    struct Node a;
+    a.data = 9;
+    a.next = NULL;
+    printf("%d\\n", a.data);
+    return 0;
+}`,
+  checks: ["structNode*next", "a.data=9", "a.next=NULL"],
+  explanation: "自引用指针必须写成 struct Node *，不能写成 Node *。坑：最后一个节点的 next 一定要置 NULL，否则遍历停不下来。"
+},
+{
+  id: 326, stage: 4, unit: "4.3", level: "easy", topic: "入门｜遍历两个节点", type: "编程题",
+  question: `不读输入。已有节点结构体，创建两个节点 a(data=1)、b(data=2)，令 a.next 指向 b、b.next=NULL，用循环输出 1 和 2（每个一行）。`,
+  starter: `#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+int main() {
+    struct Node a, b;
+    a.data = 1; b.data = 2;
+    a.next = &b; b.next = NULL;
+    /* 用 for/while 从 a 遍历到 NULL */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+int main() {
+    struct Node a, b;
+    a.data = 1; b.data = 2;
+    a.next = &b; b.next = NULL;
+    struct Node *p = &a;
+    while (p != NULL) {
+        printf("%d\\n", p->data);
+        p = p->next;
+    }
+    return 0;
+}`,
+  checks: ["while(p!=NULL)", "p->data", "p=p->next"],
+  explanation: "p->data 等价于 (*p).data，循环靠 p = p->next 往后走。坑：漏写这一句就是死循环。"
+},
+
+/* ---- 4.4 文件 ---- */
+{
+  id: 327, stage: 4, unit: "4.4", level: "easy", topic: "入门｜打开文件", type: "编程题",
+  question: `不读输入。用 fopen 以只读方式打开 a.txt，若失败输出 open failed，成功输出 open ok，然后关闭文件；两种情况都换行。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    FILE *fp = fopen("a.txt", "r");
+    /* 判断 fp 是否为 NULL 并输出 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    FILE *fp = fopen("a.txt", "r");
+    if (fp == NULL) printf("open failed\\n");
+    else printf("open ok\\n");
+    if (fp != NULL) fclose(fp);
+    return 0;
+}`,
+  checks: ["fopen(", "\"r\"", "fp==NULL", "fclose("],
+  explanation: "fopen 失败返回 NULL，所以必须先判断再使用。坑：以 r 打开不存在的文件会失败，别直接拿 fp 去读。"
+},
+{
+  id: 328, stage: 4, unit: "4.4", level: "easy", topic: "入门｜写一行文件", type: "编程题",
+  question: `不读输入。以写方式打开 out.txt，写入一行 hello 后关闭文件。`,
+  starter: `#include <stdio.h>
+
+int main() {
+    FILE *fp = fopen("out.txt", "w");
+    /* 写一行 hello，再关闭 */
+
+    return 0;
+}`,
+  reference: `#include <stdio.h>
+
+int main() {
+    FILE *fp = fopen("out.txt", "w");
+    fprintf(fp, "hello\\n");
+    fclose(fp);
+    return 0;
+}`,
+  checks: ["fopen(", "\"w\"", "fprintf(", "fclose("],
+  explanation: "写文件用 fprintf(fp, ...)，第一个参数是文件指针。坑：w 方式会清空原文件，想追加要用 a。"
+}
+
 ];
 
 /* =========================================================================
@@ -2993,7 +3748,7 @@ int main() {
  *   seen     : { 题目id: {t:累计作答次数, c:答对次数} }  → 已刷题数 / 正确率
  *   wrong    : { 题目id: {n:累计错误次数, ts:最近错的时间} } → 错题本
  *   answered / correct : 全局累计（保留备用）
- *   lastStage / lastUnit / lastMode : 记住上次选择
+ *   lastStage / lastUnit / lastLevel / lastMode : 记住上次选择（难度默认低难度）
  * 每次提交答案或自评后立即 saveState()，刷新或关掉浏览器数据不丢。
  * ========================================================================= */
 const STORE_KEY = "wengkai_c_quiz_v1";
@@ -3005,7 +3760,7 @@ const STAGES = [
   { key: "2",   name: "阶段二", short: "第4–7周",  desc: "循环 / 循环控制 / 数据类型 / 函数" },
   { key: "3",   name: "阶段三", short: "第8–10周", desc: "数组 / 指针 / 字符串" },
   { key: "4",   name: "阶段四", short: "第11–14周",desc: "结构类型 / 程序结构 / 链表 / 文件" },
-  { key: "all", name: "全部",   short: "112 题",   desc: "四个阶段全部题目，以写代码为主" }
+  { key: "all", name: "全部",   short: "140 题",   desc: "四个阶段全部题目，低 / 高难度可在下方切换" }
 ];
 
 /* 14 个周小节（二级范围）：阶段 → 周 → 知识点，严格对齐 1–14 周大纲 */
@@ -3026,6 +3781,14 @@ const UNITS = [
   { key: "4.4", stage: "4", week: "第14周", name: "文件" }
 ];
 
+/* 两档难度（三级范围）：低难度做入门题，高难度做综合进阶题，"all" 混合。
+ * 每道题在题库里自带 level: "easy" / "hard"，加题时照着填一个即可 */
+const LEVELS = [
+  { key: "easy", name: "低难度", sub: "入门 · 判断 + 填空式代码" },
+  { key: "hard", name: "高难度", sub: "进阶 · 综合编程题" },
+  { key: "all",  name: "全部",   sub: "两档混合" }
+];
+
 /* 三种模式：混合随机出题、编程专项、错题重练（后两者题型规则见 modeTypes） */
 const MODES = [
   { key: "random", name: "随机刷题",   sub: "混合抽题 · 写代码为主" },
@@ -3039,7 +3802,7 @@ QUESTION_BANK.forEach(function (q) { BY_ID[q.id] = q; });
 
 function freshState() {
   return { version: 1, seen: {}, wrong: {}, answered: 0, correct: 0,
-           lastStage: "all", lastUnit: "all", lastMode: "random" };
+           lastStage: "all", lastUnit: "all", lastLevel: "easy", lastMode: "random" };
 }
 
 function loadState() {
@@ -3061,6 +3824,7 @@ function loadState() {
       correct:  data.correct  || 0,
       lastStage: data.lastStage || base.lastStage,
       lastUnit:  data.lastUnit  || base.lastUnit,
+      lastLevel: data.lastLevel || base.lastLevel, // 兼容没有难度字段的旧数据
       lastMode:  data.lastMode  || base.lastMode
     };
   } catch (e) {
@@ -3092,26 +3856,35 @@ function toast(msg) {
 }
 
 /* 模式决定参与的题目类型，保证「已刷 x/total」与一轮实际题量一致
- * 随机刷题与错题重练都混合出题（题库里编程题占 75%），写代码练习只出编程题 */
+ * 随机刷题与错题重练都混合出题（全库编程题占 80%），写代码练习只出编程题 */
 function modeTypes(mode) {
   if (mode === "coding") return ["编程题"];
   return null; // random / wrong：全部题型
 }
 
-/* 按「阶段 + 周小节 + 模式」取题；stage/unit 为 "all" 时不过滤 */
-function poolOf(stageKey, unitKey, mode) {
+/* 难度 key → 中文名，用于题目标签与本轮结果 */
+function levelName(key) {
+  if (key === "easy") return "低难度";
+  if (key === "hard") return "高难度";
+  return "全部难度";
+}
+
+/* 按「阶段 + 周小节 + 难度 + 模式」取题；stage/unit/level 为 "all" 时不过滤
+ * level 单独作为一个维度，保证「已刷 x/total」和一轮实际题量始终一致 */
+function poolOf(stageKey, unitKey, mode, level) {
   const types = modeTypes(mode || "random");
   return QUESTION_BANK.filter(function (q) {
     if (stageKey !== "all" && String(q.stage) !== stageKey) return false;
     if (unitKey && unitKey !== "all" && q.unit !== unitKey) return false;
+    if (level && level !== "all" && q.level !== level) return false;
     if (types && types.indexOf(q.type) < 0) return false;
     return true;
   });
 }
 
-/* 当前范围/模式的统计：已刷（去重）、正确率（按累计作答次数）、错题数 */
-function statsOf(stageKey, unitKey, mode) {
-  const pool = poolOf(stageKey, unitKey, mode);
+/* 当前范围 / 难度 / 模式的统计：已刷（去重）、正确率（按累计作答次数）、错题数 */
+function statsOf(stageKey, unitKey, mode, level) {
+  const pool = poolOf(stageKey, unitKey, mode, level);
   let done = 0, times = 0, right = 0, wrong = 0;
   pool.forEach(function (q) {
     const rec = state.seen[q.id];
@@ -3204,7 +3977,16 @@ function renderHome() {
   }).join("");
   $("unit-desc").textContent = state.lastStage === "all"
     ? "已选全部 4 个阶段 / 14 个周小节；想按周练，请先选一个具体阶段。"
-    : unitName(state.lastUnit) + "（每小节 6 道写代码 + 2 道结构判断题）";
+    : unitName(state.lastUnit) + "（每小节 10 题：低难度 6 题 + 高难度 4 题）";
+
+  // 难度按钮（默认低难度；难度与阶段、小节、模式共同决定抽题范围）
+  const levelBox = $("level-list");
+  levelBox.innerHTML = LEVELS.map(function (l) {
+    const on = l.key === state.lastLevel ? " on" : "";
+    return '<button type="button" class="btn choice' + on + '" data-level="' + l.key + '">' +
+             '<span class="main">' + l.name + '</span><span class="sub">' + l.sub + '</span>' +
+           '</button>';
+  }).join("");
 
   // 模式按钮
   const modeBox = $("mode-list");
@@ -3219,8 +4001,8 @@ function renderHome() {
   const cur = STAGES.find(function (s) { return s.key === state.lastStage; }) || STAGES[4];
   $("stage-desc").textContent = cur.name + " · " + cur.short + "：" + cur.desc;
 
-  // 统计（按当前范围 + 当前模式的题量计算，进度条才与一轮题量一致）
-  const st = statsOf(state.lastStage, state.lastUnit, state.lastMode);
+  // 统计（按当前范围 + 难度 + 模式的题量计算，进度条才与一轮题量一致）
+  const st = statsOf(state.lastStage, state.lastUnit, state.lastMode, state.lastLevel);
   $("st-done").textContent  = st.done + "/" + st.total;
   $("st-rate").textContent  = st.rate + "%";
   $("st-wrong").textContent = st.wrong;
@@ -3228,16 +4010,17 @@ function renderHome() {
   $("stats-note").textContent = "累计作答 " + st.times + " 次，答对 " + st.right +
     " 次；已刷题数按不重复题目计，正确率按作答次数计。编程题由自评记分。";
 
-  // 开始按钮
+  // 开始按钮（把难度写上，避免切档后不确定自己在练哪一档）
   const btn = $("btn-start");
+  const lv = levelName(state.lastLevel);
   if (state.lastMode === "wrong") {
-    btn.textContent = st.wrong ? "开始错题重练（" + st.wrong + " 题）" : "错题本是空的";
+    btn.textContent = st.wrong ? "开始错题重练（" + st.wrong + " 题 · " + lv + "）" : "错题本是空的";
     btn.disabled = st.wrong === 0;
   } else if (state.lastMode === "coding") {
-    btn.textContent = st.total ? "开始写代码练习（" + st.total + " 题）" : "本范围暂无编程题";
+    btn.textContent = st.total ? "开始写代码练习（" + st.total + " 题 · " + lv + "）" : "本范围暂无编程题";
     btn.disabled = st.total === 0;
   } else {
-    btn.textContent = "开始刷题（" + st.total + " 题）";
+    btn.textContent = "开始刷题（" + st.total + " 题 · " + lv + "）";
     btn.disabled = st.total === 0;
   }
 }
@@ -3258,6 +4041,13 @@ $("unit-list").addEventListener("click", function (e) {
   saveState();
   renderHome();
 });
+$("level-list").addEventListener("click", function (e) {
+  const b = e.target.closest("[data-level]");
+  if (!b) return;
+  state.lastLevel = b.dataset.level;
+  saveState();
+  renderHome();
+});
 $("mode-list").addEventListener("click", function (e) {
   const b = e.target.closest("[data-mode]");
   if (!b) return;
@@ -3270,15 +4060,15 @@ $("mode-list").addEventListener("click", function (e) {
  * 五、答题流程
  * ---------------------------------------------------------------------
  * session.queue 是本轮的题号队列（进入时打乱一次）
- * random：范围内全部题目（写代码题为主）；coding：范围内的编程题
- * wrong ：范围内的错题快照（两种题型混合），做对即从 state.wrong 移出
+ * random：范围内全部题目（先按所选难度过滤，写代码题为主）；coding：范围内的编程题
+ * wrong ：范围内的错题快照（同样按所选难度过滤），做对即从 state.wrong 移出
  * 判断题提交即判分；编程题先看检查点与参考实现，再由本人自评记分
  * ========================================================================= */
 let session = null;
 
 function startQuiz() {
-  // 错题重练要能覆盖两种题型，所以按 "wrong" 的题型规则取候选
-  const pool = poolOf(state.lastStage, state.lastUnit, state.lastMode);
+  // 错题重练要能覆盖两种题型，所以按 "wrong" 的题型规则取候选；难度同样生效
+  const pool = poolOf(state.lastStage, state.lastUnit, state.lastMode, state.lastLevel);
   let ids;
   if (state.lastMode === "wrong") {
     ids = pool.filter(function (q) { return !!state.wrong[q.id]; })
@@ -3292,6 +4082,7 @@ function startQuiz() {
   session = {
     stageKey: state.lastStage,
     unitKey: state.lastUnit,
+    levelKey: state.lastLevel,
     mode: state.lastMode,
     queue: ids,
     index: 0,
@@ -3321,6 +4112,7 @@ function renderQuestion() {
   $("q-tag-unit").textContent  = unitName(q.unit);
   $("q-tag-topic").textContent = q.topic;
   $("q-tag-type").textContent  = q.type;
+  $("q-tag-level").textContent = q.level === "easy" ? "低难度" : "高难度";
   $("q-text").textContent      = q.question; // textContent 保证题库里的 < > 等符号安全显示
 
   $("q-feedback").classList.add("hidden");
@@ -3496,7 +4288,7 @@ function renderFinish() {
   $("quiz-progress").textContent = "本轮完成";
   $("round-stats").textContent = "";
 
-  const rest = poolOf(session.stageKey, session.unitKey, "wrong")
+  const rest = poolOf(session.stageKey, session.unitKey, "wrong", session.levelKey)
                  .filter(function (q) { return !!state.wrong[q.id]; }).length;
   const rate = session.roundAnswered ? Math.round(session.roundCorrect / session.roundAnswered * 100) : 0;
   panel.innerHTML =
@@ -3505,7 +4297,7 @@ function renderFinish() {
       session.roundCorrect + '</b> 题，正确率 <b>' + rate + '%</b></div>' +
     '<div class="finish-line" style="color:var(--muted);font-size:13px">' +
       stageName(session.stageKey) + ' / ' + unitName(session.unitKey) +
-      ' 范围内错题本剩余 ' + rest + ' 题</div>' +
+      ' / ' + levelName(session.levelKey) + ' 范围内错题本剩余 ' + rest + ' 题</div>' +
     '<div style="height:14px"></div>' +
     '<button type="button" class="btn btn-primary btn-large" data-act="again">再来一轮</button>' +
     '<button type="button" class="btn btn-ghost" data-act="home">返回首页</button>';
@@ -3545,7 +4337,8 @@ $("btn-clear-wrong").addEventListener("click", function () {
 });
 $("btn-clear-all").addEventListener("click", function () {
   if (!confirm("确定重置全部数据？已刷题数、正确率、错题本都会被清除，且不可撤销。")) return;
-  const keep = { lastStage: state.lastStage, lastUnit: state.lastUnit, lastMode: state.lastMode };
+  const keep = { lastStage: state.lastStage, lastUnit: state.lastUnit,
+                 lastLevel: state.lastLevel, lastMode: state.lastMode };
   state = Object.assign(freshState(), keep);
   saveState();
   renderHome();
