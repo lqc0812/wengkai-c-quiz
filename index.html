@@ -147,6 +147,27 @@ body{
 .check-list{margin:8px 0;font-size:13px;line-height:1.9}
 .check-list .hit{color:var(--ok)}
 .check-list .miss{color:var(--bad)}
+/* 内置 C 代码检查器：编译式诊断 + 逐行对比 */
+.diag-summary{font-size:13px;color:var(--muted);line-height:1.6;margin:4px 0 10px}
+.diag-sec{margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(31,39,51,.10)}
+.diag-h{font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px}
+.diag-count{font-weight:400;color:var(--muted)}
+.diag-item{border-radius:6px;padding:6px 8px;margin:5px 0;background:#fff;border:1px solid var(--line);word-break:break-word;line-height:1.55;font-size:13px}
+.diag-item.err{border-left:3px solid var(--bad);color:var(--bad)}
+.diag-item.warn{border-left:3px solid #b7791f;color:#8a5a12}
+.diag-item.ok{border-left:3px solid var(--ok);color:var(--ok)}
+.diag-line{font-weight:600}
+.diag-fix{font-size:12px;opacity:.85;margin-top:2px}
+.diag-fold{margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(31,39,51,.10)}
+.diag-fold>summary{cursor:pointer;list-style:none}
+.diag-fold>summary::-webkit-details-marker{display:none}
+.diag-fold>summary::before{content:"\25B8 ";color:var(--muted)}
+.diag-fold[open]>summary::before{content:"\25BE "}
+.diff-item{white-space:pre-wrap;word-break:break-word;border-radius:6px;padding:6px 8px;margin:5px 0;background:#fff;border:1px solid var(--line);
+  font-family:Consolas,"SF Mono",Menlo,"PingFang SC","Microsoft YaHei",monospace;font-size:12px;line-height:1.6}
+.diff-item.missing{border-left:3px solid var(--bad)}
+.diff-item.changed{border-left:3px solid #b7791f}
+.diff-item.extra{border-left:3px solid var(--muted)}
 .feedback.info{background:#f2f6fb;border:1px solid #d6e0ec;color:var(--text)}
 .self-judge{margin-bottom:14px}
 .self-judge .hint{margin:0 0 8px}
@@ -185,6 +206,7 @@ body{
       <h2>4 · 选择模式</h2>
       <div id="mode-list" class="grid grid-3"></div>
       <p class="hint">题库共 140 题（112 道编程 + 28 道结构判断），随机刷题会按当前难度混合出题。建议先选一个具体周小节，从低难度练完再切高难度。一轮会走完所选范围，随时可返回首页。</p>
+      <p class="hint">写代码题提交后会给出「第 N 行」的语法检查、检查点逐项对照和与参考实现的逐行差异；浏览器不执行 C 代码，最终仍由你自评记分。</p>
     </div>
 
     <button id="btn-start" class="btn btn-primary btn-large" type="button">开始刷题</button>
@@ -243,9 +265,9 @@ body{
 
         <div id="q-feedback" class="feedback hidden"></div>
 
-        <!-- 编程题自评：浏览器不能编译 C，对照参考实现后由本人确认 -->
+        <!-- 编程题自评：内置静态检查不代替编译，对照诊断结果后由本人确认 -->
         <div id="self-judge" class="self-judge hidden">
-          <p class="hint">浏览器不能编译 C，请对照参考实现自查后再记分：</p>
+          <p class="hint">对照上方诊断逐条改完后自评记分（浏览器不执行 C 代码）：</p>
           <div class="grid grid-2">
             <button id="judge-ok" class="btn btn-primary" type="button">✓ 我写对了</button>
             <button id="judge-no" class="btn btn-ghost" type="button">✗ 加入错题本</button>
@@ -532,6 +554,7 @@ const QUESTION_BANK = [
  *   reference : 参考实现，提交后对照
  *   checks    : 关键检查点；字符串或字符串数组（数组内任一命中即可）
  *              比对时会去掉注释和所有空白，因此缩进、换行差异不影响
+ *              提交时还会用内置静态检查器给出「第 N 行」的语法诊断与逐行差异
  * --------------------------------------------------------------------- */
 {
   id: 101, stage: 1, unit: "1.1", level: "easy", topic: "程序结构与输入输出", type: "编程题",
@@ -3904,15 +3927,552 @@ function normalizeCode(s) {
           .replace(/\s+/g, "");
 }
 
-/* 返回每个检查点是否命中；检查点可以是字符串，或"任一命中即可"的字符串数组 */
-function checkCode(code, checks) {
-  const src = normalizeCode(code);
-  return checks.map(function (c) {
-    const hit = Array.isArray(c)
-      ? c.some(function (x) { return src.indexOf(normalizeCode(x)) >= 0; })
-      : src.indexOf(normalizeCode(c)) >= 0;
-    return { label: Array.isArray(c) ? c.join(" 或 ") : c, hit: hit };
+/* =========================================================================
+ * 六、内置 C 代码检查器（静态诊断）+ 与参考实现逐行对比
+ * -------------------------------------------------------------------------
+ * 浏览器里没有 C 编译器，这里不执行代码，只做两类确定度高的检查：
+ *   ① 编译前端式静态检查：括号 / 引号 / 注释配对、漏分号、printf / scanf
+ *      格式串与参数个数、scanf 漏 &、if 里误用 =、^ 当乘方、feof 循环，
+ *      每条输出「第 N 行 + 具体问题 + 修改建议」。
+ *   ② 一一对比：检查点逐项定位到「你的第几行 / 参考第几行」，再用 LCS
+ *      把学生代码和参考实现按行对齐，列出缺哪行、哪行写错、错在哪个片段。
+ * 写法不同不等于错，所以差异只作提示；最终仍由本人对照后自评记分。
+ * ========================================================================= */
+
+/* 屏蔽注释与字符串/字符字面量的内容（保留长度与换行），避免把 "{" 当括号 */
+function maskLiterals(code) {
+  let out = "", i = 0, line = 1;
+  const issues = [];
+  while (i < code.length) {
+    const c = code[i], n = code[i + 1];
+    if (c === "/" && n === "*") {
+      const startLine = line;
+      out += "  "; i += 2;
+      let closed = false;
+      while (i < code.length) {
+        if (code[i] === "*" && code[i + 1] === "/") { out += "  "; i += 2; closed = true; break; }
+        if (code[i] === "\n") { out += "\n"; line++; } else { out += " "; }
+        i++;
+      }
+      if (!closed) issues.push({ line: startLine, kind: "block" });
+      continue;
+    }
+    if (c === "/" && n === "/") {
+      while (i < code.length && code[i] !== "\n") { out += " "; i++; }
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      const quote = c, startLine = line;
+      out += " "; i++;
+      let closed = false;
+      while (i < code.length) {
+        if (code[i] === "\\") {
+          out += " "; i++;
+          if (i < code.length) {
+            if (code[i] === "\n") { out += "\n"; line++; } else { out += " "; }
+            i++;
+          }
+          continue;
+        }
+        if (code[i] === quote) { out += " "; i++; closed = true; break; }
+        if (code[i] === "\n") { out += "\n"; line++; i++; break; }
+        out += " "; i++;
+      }
+      if (!closed) issues.push({ line: startLine, kind: quote === '"' ? "string" : "char" });
+      continue;
+    }
+    out += c;
+    if (c === "\n") line++;
+    i++;
+  }
+  return { text: out, issues: issues };
+}
+
+const CLOSE_OF = { "(": ")", "[": "]", "{": "}" };
+const OPEN_OF  = { ")": "(", "]": "[", "}": "{" };
+
+/* 括号配对：报出未闭合的那一行的行号，或多出来的右括号 */
+function lintBrackets(masked) {
+  const errs = [], stack = [];
+  let line = 1;
+  for (let i = 0; i < masked.length; i++) {
+    const c = masked[i];
+    if (c === "\n") { line++; continue; }
+    if (c === "(" || c === "[" || c === "{") { stack.push({ c: c, line: line }); continue; }
+    if (c === ")" || c === "]" || c === "}") {
+      const top = stack.pop();
+      if (!top) {
+        errs.push({ line: line, level: "error",
+          msg: "多出了一个 `" + c + "`，前面没有配对的 `" + OPEN_OF[c] + "`",
+          fix: "删掉它，或检查前面是不是少写了 `" + OPEN_OF[c] + "`" });
+      } else if (top.c !== OPEN_OF[c]) {
+        errs.push({ line: line, level: "error",
+          msg: "括号类型对不上：第 " + top.line + " 行的 `" + top.c + "` 却用 `" + c + "` 闭合",
+          fix: "应该补 `" + CLOSE_OF[top.c] + "`" });
+      }
+    }
+  }
+  stack.forEach(function (t) {
+    errs.push({ line: t.line, level: "error",
+      msg: "第 " + t.line + " 行的 `" + t.c + "` 没有闭合",
+      fix: "补上一个 `" + CLOSE_OF[t.c] + "`" });
   });
+  return errs;
+}
+
+/* 漏分号：只检查「明显是语句结尾却没写 ;」的行，控制行 / 花括号 / 预处理跳过 */
+function lintSemicolons(masked) {
+  const errs = [];
+  const funcHead = /^(?:int|void|float|double|char|long|short|unsigned|struct\s+\w+)\s+\*?\s*\w+\s*\([^)]*\)\s*$/;
+  masked.split("\n").forEach(function (raw, idx) {
+    const s = raw.trim();
+    if (!s || /^[#\/]/.test(s)) return;
+    if (/[;{},:]$/.test(s)) return;
+    if (/^(if|else|for|while|switch|do|case|default|typedef|struct|enum|union)\b/.test(s)) return;
+    if (funcHead.test(s)) return;
+    if (/[A-Za-z0-9_)\]]$/.test(s) || /\+\+$|--$/.test(s)) {
+      errs.push({ line: idx + 1, level: "error",
+        msg: "这一行结尾可能漏了分号 `;`",
+        fix: "语句末尾要写 `;`，例如：" + s.slice(0, 42) + ";" });
+    }
+  });
+  return errs;
+}
+
+/* 按顶层逗号切分实参（括号内的逗号不算） */
+function splitArgs(s) {
+  const out = [];
+  let depth = 0, cur = "", quote = null;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (quote) {
+      cur += c;
+      if (c === "\\") { cur += (s[i + 1] || ""); i++; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'") { quote = c; cur += c; continue; }
+    if (c === "(" || c === "[" || c === "{") { depth++; cur += c; continue; }
+    if (c === ")" || c === "]" || c === "}") { depth--; cur += c; continue; }
+    if (c === "," && depth === 0) { out.push(cur.trim()); cur = ""; continue; }
+    cur += c;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+
+/* 统计格式串里的转换说明个数；* 宽度/精度各多占一个参数；%% 不算 */
+function countFormats(fmt) {
+  const re = /%([-+ #0]*)(?:\d+|\*)?(?:\.(?:\d+|\*))?(?:hh|h|ll|l|L|z|j|t)?([diuoxXfeEgGcsaApn%])/g;
+  let count = 0, m;
+  while ((m = re.exec(fmt)) !== null) {
+    if (m[2] === "%") continue;
+    count += 1 + (m[0].match(/\*/g) || []).length;
+  }
+  return count;
+}
+
+/* 收集被声明为数组或指针的名字（scanf 传它们时本来就不需要 &） */
+function pointerLikeNames(masked) {
+  const names = {};
+  const type = "(?:int|char|float|double|long|short|unsigned|size_t|FILE|struct\\s+\\w+)";
+  let re = new RegExp("\\b" + type + "\\s*\\*\\s*(\\w+)", "g"), m;
+  while ((m = re.exec(masked)) !== null) names[m[1]] = true;
+  re = new RegExp("\\b" + type + "\\s+(\\w+)\\s*\\[", "g");
+  while ((m = re.exec(masked)) !== null) names[m[1]] = true;
+  return names;
+}
+
+/* printf / scanf 家族：格式串占位符数量、参数个数、scanf 漏 & */
+function lintCalls(code, masked) {
+  const errs = [];
+  const callRe = /\b(printf|scanf|fprintf|fscanf|sprintf|sscanf)\s*\(/g;
+  let m;
+  while ((m = callRe.exec(code)) !== null) {
+    const fn = m[1];
+    const open = code.indexOf("(", m.index);
+    let depth = 0, close = -1;
+    for (let i = open; i < masked.length; i++) {
+      if (masked[i] === "(") depth++;
+      else if (masked[i] === ")") { depth--; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) continue; // 未闭合由 lintBrackets 负责
+    const args = splitArgs(code.slice(open + 1, close));
+    const isF = fn === "fprintf" || fn === "fscanf" || fn === "sprintf" || fn === "sscanf";
+    const fmtIdx = isF ? 1 : 0;
+    const fmtArg = args[fmtIdx] || "";
+    const lits = fmtArg.match(/"((?:\\.|[^"\\])*)"/g);
+    if (!lits || !args.length) continue;
+    const fmt = lits.map(function (s) { return s.slice(1, -1); }).join("");
+    const conv = countFormats(fmt);
+    const values = args.length - fmtIdx - 1;
+    const line = code.slice(0, m.index).split("\n").length;
+    if (conv > 0 && values !== conv) {
+      errs.push({ line: line, level: "error",
+        msg: fn + " 的格式串有 " + conv + " 个占位符，却传了 " + values + " 个值",
+        fix: "占位符和参数必须一一对应，例如 printf(\"%d %d\", a, b);" });
+    }
+    if (/scanf$/.test(fn) || fn === "sscanf" || fn === "fscanf") {
+      const ptrs = pointerLikeNames(masked);
+      for (let k = fmtIdx + 1; k < args.length; k++) {
+        const a = args[k].trim();
+        if (/^[A-Za-z_]\w*$/.test(a) && !ptrs[a]) {
+          errs.push({ line: line, level: "error",
+            msg: fn + " 读入 `" + a + "` 时前面可能漏了 &",
+            fix: "普通变量要写 &" + a + "；数组名或指针变量本身不用 &" });
+        }
+      }
+    }
+  }
+  return errs;
+}
+
+/* 翁恺课上反复强调的几个坑：只提醒，不判错 */
+function lintPitfalls(masked) {
+  const out = [];
+  masked.split("\n").forEach(function (s, i) {
+    if (/\^/.test(s) && !/\^=/.test(s)) {
+      out.push({ line: i + 1, level: "warn",
+        msg: "出现 `^`，它是按位异或，不是乘方",
+        fix: "平方写 x*x；高次幂用循环或 pow()" });
+    }
+    if (/\bwhile\s*\(\s*!\s*feof/.test(s)) {
+      out.push({ line: i + 1, level: "warn",
+        msg: "while(!feof(fp)) 会把最后一个数多处理一次",
+        fix: "改成 while (fscanf(fp, \"%d\", &x) == 1)" });
+    }
+    const conds = s.match(/\b(?:if|while)\s*\([^()]*\)/g);
+    if (conds) conds.forEach(function (c) {
+      const body = c.replace(/^.*?\(/, "").replace(/\)$/, "");
+      if (/==|!=|<=|>=/.test(body)) return;
+      if (/(^|[^=!<>+\-*\/%&|^])=(?!=)/.test(body)) {
+        out.push({ line: i + 1, level: "warn",
+          msg: "条件里用了赋值号 `=`，判断相等应该用 `==`",
+          fix: "例如 if (x == 0)；若是有意赋值可忽略本条" });
+      }
+    });
+  });
+  return out;
+}
+
+/* 未声明 / 拼错的标识符：只在两个确定位置核对（I/O 实参、赋值号左边），避免误报 */
+function lintNames(code, masked) {
+  const KW = /^(int|char|float|double|long|short|unsigned|signed|void|struct|union|enum|typedef|const|static|extern|return|if|else|for|while|do|switch|case|break|continue|default|sizeof|NULL|EOF|stdin|stdout|stderr|FILE|size_t|main)$/;
+  const declared = {}, out = [], seen = {};
+
+  masked.split("\n").forEach(function (raw) {
+    const t = raw.trim();
+    let m = t.match(/^#define\s+(\w+)/);
+    if (m) declared[m[1]] = true;
+    m = t.match(/\bstruct\s+(\w+)/);
+    if (m) declared[m[1]] = true;
+    m = t.match(/\bfor\s*\(\s*(?:int|char|long|size_t)\s+(\w+)/);
+    if (m) declared[m[1]] = true;
+    m = t.match(/^(?:int|void|char|float|double|long|short|unsigned|struct\s+\w+\s*\*?)\s+(\w+)\s*\(([^)]*)\)/);
+    if (m) {
+      declared[m[1]] = true;
+      m[2].split(",").forEach(function (p) {
+        const id = p.match(/([A-Za-z_]\w*)\s*$/);
+        if (id) declared[id[1]] = true;
+      });
+    }
+    // 声明行（含 typedef / struct 定义 / 多变量声明）里的标识符都算已声明，宽松但只作用于该行
+    if (/^(?:int|char|float|double|long|short|unsigned|signed|void|size_t|FILE|struct|typedef|static|const)\b/.test(t) && /;/.test(t)) {
+      const re = /\b([A-Za-z_]\w*)\b/g;
+      let id;
+      while ((id = re.exec(t)) !== null) declared[id[1]] = true;
+    }
+  });
+
+  function report(name, lineNo) {
+    if (!name || KW.test(name) || declared[name] || seen[name]) return;
+    seen[name] = true;
+    out.push({ line: lineNo, level: "warn",
+      msg: "`" + name + "` 好像没有声明，检查拼写或漏掉的定义",
+      fix: "先写声明，例如 int " + name + ";，或确认变量名大小写一致" });
+  }
+
+  // ① printf / scanf 家族的实参若是单个变量名，必须已声明
+  const callRe = /\b(printf|scanf|fprintf|fscanf|sprintf|sscanf)\s*\(/g;
+  let m;
+  while ((m = callRe.exec(code)) !== null) {
+    const open = code.indexOf("(", m.index);
+    let depth = 0, close = -1;
+    for (let i = open; i < masked.length; i++) {
+      if (masked[i] === "(") depth++;
+      else if (masked[i] === ")") { depth--; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) continue;
+    const args = splitArgs(code.slice(open + 1, close));
+    const fmtIdx = /^(fprintf|fscanf|sprintf|sscanf)$/.test(m[1]) ? 1 : 0;
+    const lineNo = code.slice(0, m.index).split("\n").length;
+    args.forEach(function (a, idx) {
+      if (idx === fmtIdx) return;
+      const pure = a.trim().match(/^&?([A-Za-z_]\w*)$/);
+      if (pure) report(pure[1], lineNo);
+    });
+  }
+
+  // ② 赋值号左边的单个变量名（排除 for / if / 指针 / 数组成员）
+  masked.split("\n").forEach(function (raw, i) {
+    const t = raw.trim();
+    if (/^(#|\/\/|if|else|for|while|switch|return)/.test(t)) return;
+    const left = t.match(/^([A-Za-z_]\w*)\s*(?:\+|-|\*|\/|%|&|\||\^)?=(?!=)/);
+    if (left) report(left[1], i + 1);
+  });
+  return out.slice(0, 4); // 最多 4 条，避免刷屏
+}
+
+/* 汇总：去重、按行号排序，error 排在 warn 前 */
+function lintC(code) {
+  const mk = maskLiterals(code);
+  let all = [];
+  mk.issues.forEach(function (x) {
+    const what = x.kind === "string" ? "双引号字符串" :
+                 x.kind === "char" ? "单引号字符常量" : "块注释 /*";
+    all.push({ line: x.line, level: "error", msg: what + " 没有闭合", fix: "补上对应的结束符" });
+  });
+  all = all.concat(lintBrackets(mk.text), lintSemicolons(mk.text),
+                   lintCalls(code, mk.text), lintPitfalls(mk.text), lintNames(code, mk.text));
+  if (normalizeCode(mk.text).indexOf("main(") < 0) {
+    all.push({ line: 0, level: "warn",
+      msg: "没找到 main 函数（若本题只要求写一个函数可忽略）",
+      fix: "完整程序需要 int main() { ... return 0; }" });
+  }
+  const seen = {};
+  return all.filter(function (x) {
+    const k = x.line + "|" + x.msg;
+    if (seen[k]) return false;
+    seen[k] = 1; return true;
+  }).sort(function (a, b) {
+    if (a.line !== b.line) return a.line - b.line;
+    return a.level === b.level ? 0 : (a.level === "error" ? -1 : 1);
+  });
+}
+
+/* 在按行切分的代码里找某个片段第一次出现的行号 */
+function findLineOf(lines, needle) {
+  if (!needle) return 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (normalizeCode(lines[i]).indexOf(needle) >= 0) return i + 1;
+  }
+  return 0;
+}
+
+/* 检查点逐项对照：命中就指出在「你的第几行」，没命中就给出参考实现里的那一句 */
+function checkCode(code, checks, reference) {
+  const src = normalizeCode(code);
+  const userLines = code.split("\n");
+  const refLines = (reference || "").split("\n");
+  return checks.map(function (c) {
+    const variants = Array.isArray(c) ? c : [c];
+    const label = variants.join(" 或 ");
+    let hit = false, where = "", example = "";
+    for (let i = 0; i < variants.length; i++) {
+      const needle = normalizeCode(variants[i]);
+      if (needle && src.indexOf(needle) >= 0) {
+        hit = true;
+        const ln = findLineOf(userLines, needle);
+        where = ln ? "你的第 " + ln + " 行" : "你的代码中";
+        break;
+      }
+    }
+    if (!hit) {
+      for (let i = 0; i < variants.length; i++) {
+        const ln = findLineOf(refLines, normalizeCode(variants[i]));
+        if (ln) { example = refLines[ln - 1].trim().slice(0, 76); break; }
+      }
+    }
+    return { label: label, hit: hit, where: where, example: example };
+  });
+}
+
+/* 逐行对比：把有效代码行连同原始行号取出，注释行和空行忽略 */
+function codeRows(code) {
+  return code.split("\n").map(function (t, i) {
+    return { text: t.trim(), no: i + 1, key: normalizeCode(t) };
+  }).filter(function (r) {
+    return r.key && !/^\/\//.test(r.text) && !/^\/\*/.test(r.text) && !/^\*/.test(r.text);
+  });
+}
+
+/* 两段代码的相似度：公共前缀 + 公共后缀占较长者的比例 */
+function similarity(a, b) {
+  if (!a.length || !b.length) return 0;
+  if (a === b) return 1;
+  let p = 0;
+  while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  let s = 0;
+  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
+  return (p + s) / Math.max(a.length, b.length);
+}
+
+/* 指出一行里到底哪个片段不一样：i<n → i<=n 就只报 "<n" → "<=n" */
+function diffPart(a, b) {
+  const x = a.replace(/\s+/g, ""), y = b.replace(/\s+/g, "");
+  let p = 0;
+  while (p < x.length && p < y.length && x[p] === y[p]) p++;
+  let s = 0;
+  while (s < x.length - p && s < y.length - p && x[x.length - 1 - s] === y[y.length - 1 - s]) s++;
+  // 带上左右各 4 个字符的上下文，纯插入/删除（如 i<n → i<=n）也能看得懂
+  const lo = Math.max(0, p - 4);
+  return {
+    from: x.slice(lo, Math.min(x.length, x.length - s + 4)) || "(空)",
+    to:   y.slice(lo, Math.min(y.length, y.length - s + 4)) || "(空)"
+  };
+}
+
+/* LCS 对齐两份代码，输出三类差异：missing（缺参考里的行）、
+ * changed（写错了，附具体片段）、extra（多写的行，写法不同不一定错） */
+function buildDiff(userCode, reference) {
+  const u = codeRows(userCode), r = codeRows(reference);
+  const n = u.length, m = r.length;
+  const dp = [];
+  for (let i = 0; i <= n; i++) dp.push(new Array(m + 1).fill(0));
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    dp[i][j] = u[i - 1].key === r[j - 1].key ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  }
+  const rev = [];
+  let i = n, j = m;
+  while (i > 0 && j > 0) {
+    if (u[i - 1].key === r[j - 1].key) { rev.push({ type: "same" }); i--; j--; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) { rev.push({ type: "del", row: u[i - 1] }); i--; }
+    else { rev.push({ type: "add", row: r[j - 1] }); j--; }
+  }
+  while (i > 0) { rev.push({ type: "del", row: u[i - 1] }); i--; }
+  while (j > 0) { rev.push({ type: "add", row: r[j - 1] }); j--; }
+  const ops = rev.reverse();
+
+  const items = [];
+  let buf = [];
+  function flush() {
+    if (!buf.length) return;
+    const dels = buf.filter(function (x) { return x.type === "del"; }).map(function (x) { return x.row; });
+    const adds = buf.filter(function (x) { return x.type === "add"; }).map(function (x) { return x.row; });
+    const usedD = [], usedA = [], pairs = [];
+    for (let t = 0; t < dels.length; t++) {
+      let best = -1, bestSim = -1;
+      for (let s = 0; s < adds.length; s++) {
+        if (usedA.indexOf(s) >= 0) continue;
+        const sim = similarity(dels[t].key, adds[s].key);
+        if (sim > bestSim) { bestSim = sim; best = s; }
+      }
+      if (best >= 0 && bestSim >= 0.35) { usedA.push(best); usedD.push(t); pairs.push({ d: t, a: best }); }
+    }
+    pairs.forEach(function (p) {
+      items.push({ type: "changed", user: dels[p.d], ref: adds[p.a],
+                   part: diffPart(dels[p.d].text, adds[p.a].text) });
+    });
+    for (let s = 0; s < adds.length; s++) if (usedA.indexOf(s) < 0) items.push({ type: "missing", ref: adds[s] });
+    for (let t = 0; t < dels.length; t++) if (usedD.indexOf(t) < 0) items.push({ type: "extra", user: dels[t] });
+    buf = [];
+  }
+  ops.forEach(function (op) {
+    if (op.type === "same") flush(); else buf.push(op);
+  });
+  flush();
+  items.sort(function (a, b) {
+    return (a.user ? a.user.no : a.ref.no) - (b.user ? b.user.no : b.ref.no);
+  });
+  return items;
+}
+
+/* 生成提交后的反馈：编译式诊断 → 检查点逐项 → 逐行对比（折叠）→ 解析 → 参考实现（折叠） */
+function renderCodeFeedback(fb, q, code) {
+  const lint = lintC(code);
+  const results = checkCode(code, q.checks, q.reference);
+  const diff = buildDiff(code, q.reference);
+  const errs = lint.filter(function (x) { return x.level === "error"; });
+  const warns = lint.filter(function (x) { return x.level === "warn"; });
+  const hits = results.filter(function (r) { return r.hit; }).length;
+  const misses = results.length - hits;
+
+  fb.className = "feedback info";
+  fb.innerHTML =
+    '<div class="fb-title"></div><div class="diag-summary"></div>' +
+    '<div class="diag-sec"><div class="diag-h">① 语法与常见错误检查</div><div class="diag-list"></div></div>' +
+    '<div class="diag-sec"><div class="diag-h">② 关键检查点逐项对照 <span class="diag-count"></span></div>' +
+      '<div class="check-list"></div></div>' +
+    '<details class="diag-fold"><summary class="diag-h"></summary><div class="diff-list"></div></details>' +
+    '<div class="fb-exp"></div><div class="fb-note"></div>' +
+    '<details class="diag-fold"><summary class="diag-h">参考实现（点开对照）</summary>' +
+      '<pre class="code-block"></pre></details>';
+
+  fb.querySelector(".fb-title").textContent = errs.length
+    ? "发现 " + errs.length + " 处疑似错误"
+    : "✓ 没有发现明显语法错误";
+  fb.querySelector(".diag-summary").textContent =
+    "静态检查：" + errs.length + " 处错误 / " + warns.length + " 处提醒；" +
+    "检查点命中 " + hits + "/" + results.length + "（缺 " + misses + " 项）；" +
+    "与参考实现有 " + diff.length + " 处写法差异。检查器不执行 C 代码，写法不同不一定错，请结合下方对照判断。";
+
+  // ① 编译式诊断
+  const list = fb.querySelector(".diag-list");
+  if (!lint.length) {
+    const ok = document.createElement("div");
+    ok.className = "diag-item ok";
+    ok.textContent = "✓ 括号、分号、格式串、scanf 取址等常规检查都通过了";
+    list.appendChild(ok);
+  }
+  lint.forEach(function (x) {
+    const d = document.createElement("div");
+    d.className = "diag-item " + (x.level === "error" ? "err" : "warn");
+    const head = document.createElement("div");
+    head.className = "diag-line";
+    head.textContent = (x.line ? "第 " + x.line + " 行" : "整体") + " · " + (x.level === "error" ? "错误" : "提醒") + "：" + x.msg;
+    const fix = document.createElement("div");
+    fix.className = "diag-fix";
+    fix.textContent = "→ " + x.fix;
+    d.appendChild(head); d.appendChild(fix);
+    list.appendChild(d);
+  });
+
+  // ② 检查点逐项对照
+  fb.querySelector(".diag-count").textContent = "（" + hits + "/" + results.length + "）";
+  const cl = fb.querySelector(".check-list");
+  results.forEach(function (r) {
+    const d = document.createElement("div");
+    d.className = r.hit ? "hit" : "miss";
+    d.textContent = (r.hit ? "✓ " : "✗ ") + r.label +
+      " —— " + (r.hit ? r.where : (r.example ? "参考里写了：" + r.example : "你的代码里没找到"));
+    cl.appendChild(d);
+  });
+
+  // ③ 逐行对比（默认折叠，避免手机上刷屏）
+  fb.querySelector("details .diag-h").textContent = "③ 与参考实现逐行对比（" + diff.length + " 处，点开查看）";
+  const dl = fb.querySelector(".diff-list");
+  if (!diff.length) {
+    const ok = document.createElement("div");
+    ok.className = "diag-item ok";
+    ok.textContent = "✓ 与参考实现逐行一致（忽略注释、缩进与空白）";
+    dl.appendChild(ok);
+  }
+  diff.slice(0, 8).forEach(function (it) {
+    const d = document.createElement("div");
+    d.className = "diff-item " + it.type;
+    if (it.type === "missing") {
+      d.textContent = "缺：参考第 " + it.ref.no + " 行  `" + it.ref.text.slice(0, 76) + "`";
+    } else if (it.type === "changed") {
+      d.textContent = "改：你第 " + it.user.no + " 行 `" + it.part.from + "` → 参考第 " +
+        it.ref.no + " 行 `" + it.part.to + "`\n     你：" + it.user.text.slice(0, 76) +
+        "\n     参考：" + it.ref.text.slice(0, 76);
+    } else {
+      d.textContent = "多：你第 " + it.user.no + " 行  `" + it.user.text.slice(0, 76) + "`（写法不同不一定错）";
+    }
+    dl.appendChild(d);
+  });
+  if (diff.length > 8) {
+    const more = document.createElement("div");
+    more.className = "diag-fix";
+    more.textContent = "还有 " + (diff.length - 8) + " 处差异，可点开下方参考实现完整对照。";
+    dl.appendChild(more);
+  }
+
+  fb.querySelector(".fb-exp").textContent = "解析：" + q.explanation;
+  fb.querySelector(".fb-note").textContent = "看完上面三块，再在最下方自评记分；建议在电脑上用 gcc 跑一遍确认运行结果。";
+  fb.querySelector(".code-block").textContent = q.reference;
+  fb.classList.remove("hidden");
+  return { errors: errs.length, warnings: warns.length, hits: hits, total: results.length, diff: diff.length };
 }
 
 function unitName(key) {
@@ -4008,7 +4568,7 @@ function renderHome() {
   $("st-wrong").textContent = st.wrong;
   $("st-bar").style.width   = (st.total ? st.done / st.total * 100 : 0) + "%";
   $("stats-note").textContent = "累计作答 " + st.times + " 次，答对 " + st.right +
-    " 次；已刷题数按不重复题目计，正确率按作答次数计。编程题由自评记分。";
+    " 次；已刷题数按不重复题目计，正确率按作答次数计。编程题由自评记分（提交时先给出静态检查与逐行对比）。";
 
   // 开始按钮（把难度写上，避免切档后不确定自己在练哪一档）
   const btn = $("btn-start");
@@ -4062,7 +4622,7 @@ $("mode-list").addEventListener("click", function (e) {
  * session.queue 是本轮的题号队列（进入时打乱一次）
  * random：范围内全部题目（先按所选难度过滤，写代码题为主）；coding：范围内的编程题
  * wrong ：范围内的错题快照（同样按所选难度过滤），做对即从 state.wrong 移出
- * 判断题提交即判分；编程题先看检查点与参考实现，再由本人自评记分
+ * 判断题提交即判分；编程题先看内置检查器与逐行对比，再由本人自评记分
  * ========================================================================= */
 let session = null;
 
@@ -4118,7 +4678,7 @@ function renderQuestion() {
   $("q-feedback").classList.add("hidden");
   $("self-judge").classList.add("hidden");
   $("btn-submit").classList.remove("hidden");
-  $("btn-submit").textContent = isCode ? "提交代码 / 看参考答案" : "提交答案";
+  $("btn-submit").textContent = isCode ? "提交代码 / 检查错误" : "提交答案";
   $("btn-next").classList.add("hidden");
   $("round-stats").textContent = "本轮已答 " + session.roundAnswered + " 题，答对 " + session.roundCorrect + " 题";
 
@@ -4165,7 +4725,7 @@ function submitAnswer() {
   if (session.submitted) return;
   const q = BY_ID[session.queue[session.index]];
 
-  // 编程题走「检查点 + 参考实现 + 自评」流程
+  // 编程题走「静态检查 + 逐项/逐行对比 + 自评」流程
   if (q.type === "编程题") { submitCode(q); return; }
 
   if (session.selected === null) { toast("请先选择一个答案"); return; }
@@ -4231,8 +4791,8 @@ function showNextButton() {
   $("btn-next").textContent = (session.index + 1 >= session.queue.length) ? "查看本轮结果" : "下一题";
 }
 
-/* 编程题：检查点自查 + 参考实现对照
- * 纯前端没有 C 编译器，检查点只是提示，不代替编译运行，最终由用户自评记分 */
+/* 编程题：内置静态检查 + 逐项/逐行对比 + 参考实现，最后仍由本人自评记分
+ * 这里不执行 C 代码，只报确定度高的语法问题和与参考答案的具体差异 */
 function submitCode(q) {
   const editor = $("code-editor");
   const code = editor.value;
@@ -4240,29 +4800,7 @@ function submitCode(q) {
   if (normalizeCode(code) === normalizeCode(q.starter)) { toast("还没动笔呢，先改改起手代码"); return; }
   session.submitted = true;
   editor.disabled = true;
-
-  const results = checkCode(code, q.checks);
-  const hits = results.filter(function (r) { return r.hit; }).length;
-  const fb = $("q-feedback");
-  fb.className = "feedback info";
-  fb.innerHTML = '<div class="fb-title"></div><div class="fb-line"></div>' +
-                 '<div class="check-list"></div><div class="fb-exp"></div>' +
-                 '<div class="fb-note"></div><pre class="code-block"></pre>';
-  fb.querySelector(".fb-title").textContent = "代码自查结果";
-  fb.querySelector(".fb-line").textContent =
-    "关键检查点命中 " + hits + " / " + results.length + " 个（仅作提示，不代表编译通过）";
-  const list = fb.querySelector(".check-list");
-  results.forEach(function (r) {
-    const div = document.createElement("div");
-    div.className = r.hit ? "hit" : "miss";
-    div.textContent = (r.hit ? "✓ " : "✗ ") + r.label;
-    list.appendChild(div);
-  });
-  fb.querySelector(".fb-exp").textContent = "解析：" + q.explanation;
-  fb.querySelector(".fb-note").textContent = "参考实现见下方；建议在本地编译器跑一遍后自评。";
-  fb.querySelector(".code-block").textContent = q.reference;
-  fb.classList.remove("hidden");
-
+  session.lastDiag = renderCodeFeedback($("q-feedback"), q, code);
   $("btn-submit").classList.add("hidden");
   $("self-judge").classList.remove("hidden");
 }
